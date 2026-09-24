@@ -1,0 +1,29 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: mall-backend
+  # 默认使用 H2 内存数据库，clone 后无需安装 MySQL 即可运行；
+  # 切换 MySQL 时，取消 pom.xml 中 mysql 依赖注释，并替换下面的 datasource 配置。
+  datasource:
+    url: jdbc:h2:mem:mall;DB_CLOSE_DELAY=-1;MODE=MySQL
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# 图片上传目录（相对工作目录）
+mall:
+  upload-dir: uploads
