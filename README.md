@@ -157,6 +157,13 @@ chore: 调整 .gitignore
 4. 至少 1 名成员 Code Review 通过后合并
 5. Sprint 结束时 `develop` 合并到 `main`，打 tag 作为版本
 
+## 项目成员
+
+| 姓名 | 邮箱 |
+| --- | --- |
+| （待填写） | 22800257@qq.com |
+| （待填写） | 3396556354@qq.com |
+
 ## 相关文档
 
 - [产品订单（Product Backlog）](docs/产品订单_ProductBacklog.md)
