@@ -61,3 +61,11 @@ generated-images/
 *.pptx
 *litemall*
 图3_用户下单购买商品业务流程图.png
+
+# ===== 运行时上传目录（商品图片，运行时生成） =====
+backend/uploads/
+
+# ===== 临时检查产物 =====
+qa-text.txt
+dev-backend.log
+dev-frontend.log
