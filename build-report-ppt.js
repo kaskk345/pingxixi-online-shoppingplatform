@@ -23,11 +23,11 @@ const FB = "Microsoft YaHei";
 const W = 10, H = 5.625;
 
 const ROLES = [
-  { no: "01", name: "前端开发", tag: "前端", color: CLAY, pages: "P3–P5", desc: "页面与交互\n· 技术选型与工程结构\n· 买家端与卖家端页面\n· 状态驱动 UI 与口令码" },
-  { no: "02", name: "后端开发①", tag: "后端①", color: CLAY_D, pages: "P6–P8", desc: "接口与认证\n· 分层架构与统一规范\n· 卖家登录与 X-Token\n· 商品与意向接口清单" },
-  { no: "03", name: "后端开发②", tag: "后端②", color: "6B8E7B", pages: "P9–P11", desc: "领域模型与状态\n· 数据模型与三套枚举\n· 商品四态状态机\n· 先到先得队列与口令码" },
-  { no: "04", name: "测试", tag: "测试", color: "4F6D7A", pages: "P12–P14", desc: "质量保障\n· 测试策略与完成定义\n· 接口与端到端验证\n· 并发异常与规则校验" },
-  { no: "05", name: "文档 / UI", tag: "文档", color: "8A6F47", pages: "P15–P18", desc: "文档与演示\n· 文档体系与工作量\n· 功能结构图与用例图\n· 业务流程图 / 部署演示" },
+  { no: "01", name: "前端开发（丁月诚）", tag: "前端", color: CLAY, pages: "P3–P5", desc: "页面与交互\n· 技术选型与工程结构\n· 买家端与卖家端页面\n· 状态驱动 UI 与口令码" },
+  { no: "02", name: "后端开发①（王则凯）", tag: "后端①", color: CLAY_D, pages: "P6–P8", desc: "接口与认证\n· 分层架构与统一规范\n· 卖家登录与 X-Token\n· 商品与意向接口清单" },
+  { no: "03", name: "后端开发②（方浩昱）", tag: "后端②", color: "6B8E7B", pages: "P9–P11", desc: "领域模型与状态\n· 数据模型与三套枚举\n· 商品四态状态机\n· 先到先得队列与口令码" },
+  { no: "04", name: "测试（戴英杰）", tag: "测试", color: "4F6D7A", pages: "P12–P14", desc: "质量保障\n· 测试策略与完成定义\n· 接口与端到端验证\n· 并发异常与规则校验" },
+  { no: "05", name: "文档 / UI（何易）", tag: "文档", color: "8A6F47", pages: "P15–P18", desc: "文档与演示\n· 文档体系与工作量\n· 功能结构图与用例图\n· 业务流程图 / 部署演示" },
 ];
 
 const shadow = () => ({ type: "outer", color: "000000", blur: 8, offset: 2, angle: 135, opacity: 0.1 });
