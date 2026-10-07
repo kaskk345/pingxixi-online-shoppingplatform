@@ -9,13 +9,16 @@ import java.util.Optional;
 
 public interface PurchaseIntentRepository extends JpaRepository<PurchaseIntent, Long> {
 
-    List<PurchaseIntent> findAllByOrderByCreatedAtDesc();
+    List<PurchaseIntent> findAllByOrderByQueueTimeAsc();
 
-    List<PurchaseIntent> findByProductIdOrderByCreatedAtDesc(Long productId);
+    /** 卖家后台：按先到先得（排队时间正序）展示 */
+    List<PurchaseIntent> findByProductIdOrderByQueueTimeAsc(Long productId);
 
-    List<PurchaseIntent> findByProductIdAndStatus(Long productId, IntentStatus status);
+    List<PurchaseIntent> findByProductIdAndStatusOrderByQueueTimeAsc(Long productId, IntentStatus status);
 
-    Optional<PurchaseIntent> findByBuyerPhoneAndProductIdAndStatus(String phone, Long productId, IntentStatus status);
+    long countByProductIdAndStatusAndQueueTimeBefore(Long productId, IntentStatus status, java.time.LocalDateTime time);
 
-    Optional<PurchaseIntent> findByIdAndBuyerPhone(Long id, String phone);
+    Optional<PurchaseIntent> findByCode(String code);
+
+    Optional<PurchaseIntent> findByCodeAndStatus(String code, IntentStatus status);
 }

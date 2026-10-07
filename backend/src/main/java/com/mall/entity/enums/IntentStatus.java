@@ -1,12 +1,16 @@
 package com.mall.entity.enums;
 
+/**
+ * 购买意向状态：
+ * 先到先得，按排队时间正序；等候中的意向按队列顺序依次递补进交易。
+ */
 public enum IntentStatus {
-    PENDING("待处理"),
-    ACCEPTED("交易中"),
-    SUCCEEDED("已成交"),
+    WAITING("等候中"),
+    TRADING("交易中"),
+    SUCCEEDED("交易成功"),
     FAILED("交易失败"),
-    REJECTED("已拒绝"),
-    EXPIRED("已失效");
+    VOID("已作废"),
+    CANCELED("已撤销");
 
     private final String label;
 
@@ -16,5 +20,10 @@ public enum IntentStatus {
 
     public String getLabel() {
         return label;
+    }
+
+    /** 是否还在队列中占位（等候中或交易中） */
+    public boolean active() {
+        return this == WAITING || this == TRADING;
     }
 }

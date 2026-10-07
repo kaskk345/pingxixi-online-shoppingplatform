@@ -45,9 +45,9 @@ public class SellerController {
         List<Product> products = productRepository.findAll();
         List<PurchaseIntent> intents = intentRepository.findAll();
         Map<String, Long> stats = new HashMap<>();
-        stats.put("onSale", products.stream().filter(p -> p.getStatus() == ProductStatus.ON_SALE).count());
+        stats.put("onSale", products.stream().filter(p -> p.getStatus().buyable()).count());
         stats.put("frozen", products.stream().filter(p -> p.getStatus() == ProductStatus.FROZEN).count());
-        stats.put("sold", products.stream().filter(p -> p.getStatus() == ProductStatus.SOLD).count());
+        stats.put("offShelf", products.stream().filter(p -> p.getStatus() == ProductStatus.OFF_SHELF).count());
         stats.put("intentTotal", (long) intents.size());
         stats.put("intentSucceeded", intents.stream().filter(i -> i.getStatus() == IntentStatus.SUCCEEDED).count());
         return Result.ok(stats);

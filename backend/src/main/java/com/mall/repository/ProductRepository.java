@@ -9,7 +9,14 @@ import java.util.Optional;
 
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
+    /** 当前唯一可购买的商品（在售 或 已恢复在售） */
+    Optional<Product> findFirstByStatusIn(List<ProductStatus> statuses);
+
+    boolean existsByStatusIn(List<ProductStatus> statuses);
+
     Optional<Product> findFirstByStatus(ProductStatus status);
+
+    List<Product> findByStatusOrderByCreatedAtDesc(ProductStatus status);
 
     List<Product> findAllByOrderByCreatedAtDesc();
 

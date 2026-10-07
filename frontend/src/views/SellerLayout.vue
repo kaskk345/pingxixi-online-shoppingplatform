@@ -10,7 +10,7 @@
     </el-aside>
     <el-container>
       <el-header class="header">
-        <span>在线购物系统 · 卖家后台</span>
+        <span>拼夕夕 · 卖家后台</span>
         <el-button link type="primary" @click="logout">退出登录</el-button>
       </el-header>
       <el-main>

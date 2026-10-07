@@ -1,60 +1,68 @@
 <template>
   <div class="home">
     <header class="header">
-      <div class="brand">在线购物系统</div>
-      <router-link to="/login" class="seller-link">卖家后台</router-link>
+      <div class="brand">
+        <span class="logo">拼夕夕</span>
+        <span class="slogan">小众定制 · 单品单卖</span>
+      </div>
+      <div class="actions">
+        <el-button link @click="$router.push('/track')">查询我的意向</el-button>
+        <el-button link type="primary" @click="$router.push('/login')">商家后台</el-button>
+      </div>
     </header>
 
-    <div class="container">
-      <div v-if="product" class="product-card">
-        <div class="img">
-          <img v-if="product.imageUrl" :src="product.imageUrl" alt="商品图" />
-          <div v-else class="placeholder">商品图片</div>
+    <main class="main">
+      <section v-if="product" class="showcase">
+        <div class="gallery">
+          <img :src="product.imageUrl" :alt="product.name" />
+          <span class="badge">{{ productStatus[product.status] }}</span>
         </div>
-        <div class="info">
-          <h2>{{ product.name }}</h2>
+
+        <div class="detail">
+          <div class="tag">当前唯一在售 · 仅此 1 件</div>
+          <h1 class="name">{{ product.name }}</h1>
           <p class="desc">{{ product.description }}</p>
-          <p class="price">¥ {{ product.price }}</p>
-          <p class="tip">仅此一件，售出后再制作下一件 · 线下交易，一手交钱一手交货</p>
-          <el-button type="primary" size="large" @click="openBuy">立即购买</el-button>
+
+          <div class="price-row">
+            <span class="price"><i>¥</i>{{ product.price }}</span>
+            <span class="stock">库存 {{ product.stock }} 件</span>
+          </div>
+
+          <ul class="tips">
+            <li>买家无需注册，填写姓名与联系电话即可提交购买意向</li>
+            <li>提交后会得到一个<b>口令码</b>，凭它可以查排队位次、改联系方式、撤销意向</li>
+            <li>先到先得：按提交时间排队，排在最前面的意向先进入线下交易</li>
+            <li>交易达成前商品会被冻结，冻结期间不接受新的意向</li>
+          </ul>
+
+          <el-button type="danger" size="large" :disabled="!buyable(product.status)" @click="openBuy">
+            {{ buyable(product.status) ? '提交购买意向' : '商品交易中，暂不接受新的意向' }}
+          </el-button>
         </div>
-      </div>
-      <el-empty v-else description="商品制作中，敬请期待" />
-    </div>
+      </section>
 
-    <el-card class="query">
-      <template #header>查询购买进度</template>
-      <el-form inline>
-        <el-form-item label="意向编号">
-          <el-input v-model="qId" placeholder="提交意向时返回的编号" />
-        </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="qPhone" placeholder="下单时填写的手机号" />
-        </el-form-item>
-        <el-button type="primary" @click="query">查询</el-button>
-      </el-form>
-      <el-alert v-if="result" type="info" :closable="false" style="margin-top:8px">
-        <template #title>
-          意向 #{{ result.id }}：{{ intentStatus[result.status] }}，价格快照 ¥{{ result.priceSnapshot }}
-        </template>
-      </el-alert>
-    </el-card>
+      <section v-else class="empty">
+        <div class="empty-icon">🛍️</div>
+        <h2>当前没有在售商品</h2>
+        <p>店主还没有发布商品，或上一件商品已完成交易。</p>
+      </section>
+    </main>
 
-    <el-dialog v-model="dialog" title="填写购买信息" width="420px">
-      <el-form :model="form" label-width="80px">
+    <el-dialog v-model="buyVisible" title="提交购买意向" width="440px">
+      <el-form :model="form" label-width="76px">
         <el-form-item label="姓名">
-          <el-input v-model="form.buyerName" placeholder="请输入姓名" />
+          <el-input v-model="form.buyerName" placeholder="请输入您的姓名" />
         </el-form-item>
-        <el-form-item label="手机号">
-          <el-input v-model="form.buyerPhone" placeholder="用于卖家联系您" />
+        <el-form-item label="联系电话">
+          <el-input v-model="form.buyerPhone" placeholder="请输入联系电话" />
         </el-form-item>
         <el-form-item label="备注">
-          <el-input v-model="form.buyerNote" type="textarea" placeholder="选填" />
+          <el-input v-model="form.buyerNote" type="textarea" :rows="2" placeholder="想对卖家说的话（可选）" />
         </el-form-item>
       </el-form>
       <template #footer>
-        <el-button @click="dialog = false">取消</el-button>
-        <el-button type="primary" @click="submit">提交意向</el-button>
+        <el-button @click="buyVisible = false">取消</el-button>
+        <el-button type="primary" @click="submitIntent">提交意向</el-button>
       </template>
     </el-dialog>
   </div>
@@ -62,16 +70,15 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { ElMessage } from 'element-plus'
+import { useRouter } from 'vue-router'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '../api'
-import { intentStatus } from '../utils/status'
+import { productStatus, buyable } from '../utils/status'
 
+const router = useRouter()
 const product = ref(null)
-const dialog = ref(false)
+const buyVisible = ref(false)
 const form = ref({ buyerName: '', buyerPhone: '', buyerNote: '' })
-const qId = ref('')
-const qPhone = ref('')
-const result = ref(null)
 
 async function load() {
   product.value = await http.get('/products/on-sale')
@@ -79,103 +86,174 @@ async function load() {
 
 function openBuy() {
   form.value = { buyerName: '', buyerPhone: '', buyerNote: '' }
-  dialog.value = true
+  buyVisible.value = true
 }
 
-async function submit() {
-  if (!form.value.buyerName || !form.value.buyerPhone) {
-    ElMessage.warning('请填写姓名和手机号')
-    return
+async function submitIntent() {
+  const { buyerName, buyerPhone, buyerNote } = form.value
+  if (!buyerName.trim()) return ElMessage.warning('请填写姓名')
+  if (!buyerPhone.trim()) return ElMessage.warning('请填写联系电话')
+  try {
+    const res = await http.post('/intents', {
+      productId: product.value.id,
+      buyerName: buyerName.trim(),
+      buyerPhone: buyerPhone.trim(),
+      buyerNote
+    })
+    buyVisible.value = false
+    await ElMessageBox.alert(
+      `请妥善保存你的口令码：\n\n${res.code}\n\n凭它可以查询排队位次、修改联系方式、撤销意向。`,
+      '意向提交成功',
+      { confirmButtonText: '我知道了' }
+    )
+    router.push({ path: '/track', query: { code: res.code } })
+  } catch (e) {
+    /* 拦截器已提示错误 */
   }
-  const r = await http.post('/intents', { productId: product.value.id, ...form.value })
-  dialog.value = false
-  ElMessage.success('提交成功，意向编号：' + r.id)
-}
-
-async function query() {
-  if (!qId.value || !qPhone.value) {
-    ElMessage.warning('请填写意向编号和手机号')
-    return
-  }
-  result.value = await http.get('/intents/query', { params: { id: qId.value, phone: qPhone.value } })
 }
 
 onMounted(load)
 </script>
 
 <style scoped>
+.home {
+  min-height: 100vh;
+  background: #fbf8f3;
+}
 .header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  padding: 0 40px;
-  height: 60px;
+  justify-content: space-between;
+  padding: 14px 28px;
   background: #fff;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+  border-bottom: 1px solid #eee;
 }
 .brand {
-  font-size: 20px;
-  font-weight: 700;
-  color: #2f6fd0;
-}
-.seller-link {
-  color: #666;
-}
-.container {
-  max-width: 860px;
-  margin: 40px auto;
-}
-.product-card {
   display: flex;
-  gap: 32px;
+  align-items: baseline;
+  gap: 10px;
+}
+.logo {
+  font-size: 22px;
+  font-weight: 700;
+  color: #b85042;
+}
+.slogan {
+  font-size: 13px;
+  color: #8a8178;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.main {
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+.showcase {
+  display: grid;
+  grid-template-columns: 420px 1fr;
+  gap: 36px;
   background: #fff;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+.gallery {
+  position: relative;
+  background: #f5f2ec;
   border-radius: 12px;
-  padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
-}
-.img {
-  width: 280px;
-  height: 280px;
-  flex-shrink: 0;
-  border-radius: 8px;
   overflow: hidden;
-  background: #f0f2f5;
+  aspect-ratio: 1;
 }
-.img img {
+.gallery img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
 }
-.placeholder {
-  width: 100%;
-  height: 100%;
+.badge {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  background: #b85042;
+  color: #fff;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.detail {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #aaa;
+  flex-direction: column;
 }
-.info h2 {
+.tag {
+  align-self: flex-start;
+  background: #fdecec;
+  color: #b85042;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+.name {
   font-size: 26px;
-  margin-bottom: 12px;
+  margin: 14px 0 8px;
+  color: #2b2622;
 }
 .desc {
-  color: #666;
+  color: #6b625b;
   line-height: 1.7;
-  margin-bottom: 20px;
+  font-size: 14px;
+}
+.price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin: 18px 0 6px;
 }
 .price {
-  font-size: 30px;
-  color: #e64545;
+  color: #b85042;
+  font-size: 34px;
   font-weight: 700;
-  margin-bottom: 8px;
 }
-.tip {
+.price i {
+  font-style: normal;
+  font-size: 18px;
+  margin-right: 2px;
+}
+.stock {
+  color: #8a8178;
   font-size: 13px;
-  color: #999;
-  margin-bottom: 24px;
 }
-.query {
-  max-width: 860px;
-  margin: 0 auto 40px;
+.tips {
+  margin: 14px 0 22px;
+  padding-left: 18px;
+  color: #6b625b;
+  font-size: 13px;
+  line-height: 1.9;
+}
+.empty {
+  background: #fff;
+  border-radius: 14px;
+  padding: 70px 20px;
+  text-align: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+.empty-icon {
+  font-size: 48px;
+}
+.empty h2 {
+  margin: 14px 0 10px;
+  color: #2b2622;
+}
+.empty p {
+  color: #6b625b;
+  font-size: 14px;
+}
+@media (max-width: 860px) {
+  .showcase {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
