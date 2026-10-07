@@ -62,7 +62,7 @@ public class SellerController {
     public record PasswordReq(
             @NotBlank(message = "原密码不能为空") String oldPassword,
             @NotBlank(message = "新密码不能为空")
-            @Size(min = 6, max = 20, message = "新密码长度需在 6-20 位之间") String newPassword
+            @Size(min = 8, max = 20, message = "新密码长度需在 8-20 位之间") String newPassword
     ) {
     }
 }
