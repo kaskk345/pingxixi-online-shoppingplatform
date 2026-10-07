@@ -18,6 +18,10 @@
 
 1. [第 1 次阶段性评审报告](./第1次阶段性评审报告)
 
+## 需求与设计文档
+
+- [需求规格说明书](./需求规格说明书)
+
 ## 相关文档
 
 - [产品订单 Product Backlog](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/main/产品订单_ProductBacklog.md)
