@@ -107,10 +107,20 @@ public class IntentService {
                 .toList();
     }
 
+    public org.springframework.data.domain.Page<IntentView> listByProduct(Long productId, org.springframework.data.domain.Pageable pageable) {
+        return intentRepository.findByProductIdOrderByQueueTimeAsc(productId, pageable)
+                .map(i -> toView(i, productRepository.findById(i.getProductId()).orElse(null), false, false));
+    }
+
     public List<IntentView> listAll() {
         return intentRepository.findAllByOrderByQueueTimeAsc().stream()
                 .map(i -> toView(i, productRepository.findById(i.getProductId()).orElse(null), false, false))
                 .toList();
+    }
+
+    public org.springframework.data.domain.Page<IntentView> listAll(org.springframework.data.domain.Pageable pageable) {
+        return intentRepository.findAllByOrderByQueueTimeAsc(pageable)
+                .map(i -> toView(i, productRepository.findById(i.getProductId()).orElse(null), false, false));
     }
 
     /** 开始交易：只允许队首（最早等候的意向）进入交易，商品自动冻结 */

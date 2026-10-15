@@ -8,6 +8,9 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -49,8 +52,11 @@ public class IntentController {
     // ===== 卖家端：只查看与标记结果，看不到口令码 =====
 
     @GetMapping("/seller/intents")
-    public Result<List<IntentView>> list(@RequestParam(required = false) Long productId) {
-        return Result.ok(productId == null ? intentService.listAll() : intentService.listByProduct(productId));
+    public Result<Page<IntentView>> list(@RequestParam(required = false) Long productId,
+                                         @RequestParam(defaultValue = "0") int page,
+                                         @RequestParam(defaultValue = "20") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        return Result.ok(productId == null ? intentService.listAll(pageable) : intentService.listByProduct(productId, pageable));
     }
 
     /** 开始交易：只允许队首进入，商品自动冻结 */

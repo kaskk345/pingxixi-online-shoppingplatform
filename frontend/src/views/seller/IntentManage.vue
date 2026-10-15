@@ -38,6 +38,15 @@
         </template>
       </el-table-column>
     </el-table>
+
+    <el-pagination
+      class="pager"
+      layout="total, prev, pager, next"
+      :total="total"
+      :page-size="size"
+      :current-page="page"
+      @current-change="handlePageChange"
+    />
   </div>
 </template>
 
@@ -48,6 +57,9 @@ import http from '../../api'
 import { intentStatus } from '../../utils/status'
 
 const intents = ref([])
+const total = ref(0)
+const page = ref(1)
+const size = ref(20)
 const type = {
   WAITING: 'warning',
   TRADING: 'primary',
@@ -58,7 +70,15 @@ const type = {
 }
 
 async function load() {
-  intents.value = await http.get('/seller/intents')
+  const res = await http.get('/seller/intents', { params: { page: page.value - 1, size: size.value } })
+  // 买家撤销(CANCELED)的意向从卖家管理页隐藏；历史商品详情仍保留其记录
+  intents.value = res.content.filter((i) => i.status !== 'CANCELED')
+  total.value = res.totalElements
+}
+
+function handlePageChange(p) {
+  page.value = p
+  load()
 }
 
 async function act(action, row) {
@@ -81,5 +101,9 @@ onMounted(load)
 <style scoped>
 .toolbar {
   margin-bottom: 16px;
+}
+.pager {
+  margin-top: 16px;
+  justify-content: center;
 }
 </style>
