@@ -59,12 +59,6 @@ public class ProductController {
                 req.price(), req.category()));
     }
 
-    @PutMapping("/seller/products/{id}")
-    public Result<Product> update(@PathVariable Long id, @Valid @RequestBody ProductReq req) {
-        return Result.ok(productService.update(id, req.name(), req.description(), req.imageUrl(),
-                req.price(), req.category()));
-    }
-
     /** 手动冻结：临时停售，冻结期间不接受新意向 */
     @PostMapping("/seller/products/{id}/freeze")
     public Result<Product> freeze(@PathVariable Long id) {

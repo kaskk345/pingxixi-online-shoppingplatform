@@ -32,16 +32,62 @@
       <el-table-column prop="createdAt" label="发布时间" width="180" />
       <el-table-column label="操作" width="320">
         <template #default="{ row }">
-          <el-button v-if="buyable(row.status)" size="small" @click="openEdit(row)">编辑</el-button>
           <el-button v-if="buyable(row.status)" size="small" type="warning" @click="action('freeze', row)">冻结</el-button>
           <el-button v-if="row.status === 'FROZEN'" size="small" type="success" @click="action('unfreeze', row)">解冻</el-button>
           <el-button v-if="buyable(row.status)" size="small" @click="action('off-shelf', row)">手动下架</el-button>
-          <span v-if="row.status === 'OFF_SHELF'" class="readonly">历史商品（只读）</span>
+          <template v-if="row.status === 'OFF_SHELF'">
+            <el-tag size="small" type="info">历史商品（只读）</el-tag>
+            <el-button size="small" @click="openHistory(row)">查看</el-button>
+          </template>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="dialog" :title="editing ? '编辑商品' : '发布商品'" width="480px">
+    <el-dialog v-model="historyVisible" title="历史商品详情" width="680px">
+      <template v-if="historyProduct">
+        <el-divider content-position="left">商品信息</el-divider>
+        <div class="hist-product">
+          <el-image v-if="historyProduct.imageUrl" :src="historyProduct.imageUrl" style="width: 96px; height: 96px" fit="cover" />
+          <ul class="hist-info">
+            <li><span>名称：</span>{{ historyProduct.name }}</li>
+            <li><span>分类：</span>{{ historyProduct.category || '—' }}</li>
+            <li><span>价格：</span>¥ {{ historyProduct.price }}</li>
+            <li><span>状态：</span>{{ productStatus[historyProduct.status] }}</li>
+            <li><span>库存：</span>{{ historyProduct.stock }}　<span>销量：</span>{{ historyProduct.sales }}</li>
+            <li><span>发布时间：</span>{{ historyProduct.createdAt }}</li>
+            <li v-if="historyProduct.soldAt"><span>成交时间：</span>{{ historyProduct.soldAt }}</li>
+          </ul>
+        </div>
+        <p class="hist-desc">{{ historyProduct.description }}</p>
+
+        <el-divider content-position="left">购买意向（买家姓名 / 电话）</el-divider>
+        <el-table :data="historyIntents" border empty-text="该商品暂无购买意向">
+          <el-table-column prop="buyerName" label="姓名" width="110" />
+          <el-table-column prop="buyerPhone" label="联系电话" width="140" />
+          <el-table-column prop="buyerNote" label="备注" min-width="120" />
+          <el-table-column prop="createdAt" label="提交时间" width="180" />
+          <el-table-column label="状态" width="100">
+            <template #default="{ row }">
+              <el-tag :type="intentType[row.status]">{{ intentStatus[row.status] }}</el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="交易结果" width="100">
+            <template #default="{ row }">{{ row.result ? intentStatus[row.result] : '—' }}</template>
+          </el-table-column>
+        </el-table>
+
+        <el-pagination
+          class="pager"
+          layout="total, prev, pager, next"
+          :total="histTotal"
+          :page-size="histSize"
+          :current-page="histPage"
+          @current-change="(p) => { histPage = p; loadHistory() }"
+        />
+      </template>
+    </el-dialog>
+
+    <el-dialog v-model="dialog" title="发布商品" width="480px">
       <el-form :model="form" label-width="70px">
         <el-form-item label="名称">
           <el-input v-model="form.name" />
@@ -78,46 +124,52 @@
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '../../api'
-import { productStatus, buyable } from '../../utils/status'
+import { productStatus, buyable, intentStatus } from '../../utils/status'
 
 const products = ref([])
 const dialog = ref(false)
-const editing = ref(null)
 const form = ref({ name: '', description: '', price: 1, imageUrl: '', category: '' })
 const statusType = { ON_SALE: 'success', RESTORED: 'success', FROZEN: 'warning', OFF_SHELF: 'info' }
+const intentType = { WAITING: 'warning', TRADING: 'primary', SUCCEEDED: 'success', FAILED: 'danger', VOID: 'info', CANCELED: 'info' }
 const categories = ['数码', '食品', '服饰', '家居', '美妆', '日用']
+
+const historyVisible = ref(false)
+const historyProduct = ref(null)
+const historyIntents = ref([])
+const histPage = ref(1)
+const histSize = ref(20)
+const histTotal = ref(0)
+
+async function openHistory(row) {
+  historyProduct.value = row
+  historyIntents.value = []
+  histPage.value = 1
+  historyVisible.value = true
+  await loadHistory()
+}
+
+async function loadHistory() {
+  if (!historyProduct.value) return
+  const res = await http.get('/seller/intents', {
+    params: { productId: historyProduct.value.id, page: histPage.value - 1, size: histSize.value }
+  })
+  historyIntents.value = res.content
+  histTotal.value = res.totalElements
+}
 
 async function load() {
   products.value = await http.get('/seller/products')
 }
 
 function openCreate() {
-  editing.value = null
   form.value = { name: '', description: '', price: 1, imageUrl: '', category: '' }
   dialog.value = true
 }
 
-function openEdit(row) {
-  editing.value = row
-  form.value = {
-    name: row.name,
-    description: row.description,
-    price: Number(row.price),
-    imageUrl: row.imageUrl,
-    category: row.category || ''
-  }
-  dialog.value = true
-}
-
 async function save() {
-  const payload = { ...form.value }
-  if (editing.value) {
-    await http.put(`/seller/products/${editing.value.id}`, payload)
-  } else {
-    await http.post('/seller/products', payload)
-  }
+  await http.post('/seller/products', { ...form.value })
   dialog.value = false
-  ElMessage.success('保存成功')
+  ElMessage.success('发布成功')
   load()
 }
 
@@ -151,5 +203,30 @@ onMounted(load)
 .readonly {
   color: #a09890;
   font-size: 12px;
+}
+.hist-product {
+  display: flex;
+  gap: 16px;
+}
+.hist-info {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+  color: #4b4540;
+  line-height: 1.9;
+}
+.hist-info span {
+  color: #8a8178;
+}
+.hist-desc {
+  margin: 12px 0 0;
+  color: #6b625b;
+  font-size: 13px;
+  line-height: 1.7;
+}
+.pager {
+  margin-top: 16px;
+  justify-content: center;
 }
 </style>

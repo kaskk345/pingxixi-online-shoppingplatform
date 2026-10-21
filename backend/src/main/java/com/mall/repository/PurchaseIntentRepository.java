@@ -2,6 +2,8 @@ package com.mall.repository;
 
 import com.mall.entity.PurchaseIntent;
 import com.mall.entity.enums.IntentStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -11,8 +13,14 @@ public interface PurchaseIntentRepository extends JpaRepository<PurchaseIntent, 
 
     List<PurchaseIntent> findAllByOrderByQueueTimeAsc();
 
+    /** 卖家后台：按先到先得（排队时间正序）展示，分页 */
+    Page<PurchaseIntent> findAllByOrderByQueueTimeAsc(Pageable pageable);
+
     /** 卖家后台：按先到先得（排队时间正序）展示 */
     List<PurchaseIntent> findByProductIdOrderByQueueTimeAsc(Long productId);
+
+    /** 历史商品：按商品过滤，排队时间正序，分页 */
+    Page<PurchaseIntent> findByProductIdOrderByQueueTimeAsc(Long productId, Pageable pageable);
 
     List<PurchaseIntent> findByProductIdAndStatusOrderByQueueTimeAsc(Long productId, IntentStatus status);
 

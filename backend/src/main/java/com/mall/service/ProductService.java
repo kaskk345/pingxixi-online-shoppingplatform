@@ -2,8 +2,11 @@ package com.mall.service;
 
 import com.mall.common.BizException;
 import com.mall.entity.Product;
+import com.mall.entity.PurchaseIntent;
+import com.mall.entity.enums.IntentStatus;
 import com.mall.entity.enums.ProductStatus;
 import com.mall.repository.ProductRepository;
+import com.mall.repository.PurchaseIntentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,6 +34,7 @@ public class ProductService {
     private static final List<ProductStatus> BUYABLE = List.of(ProductStatus.ON_SALE, ProductStatus.RESTORED);
 
     private final ProductRepository productRepository;
+    private final PurchaseIntentRepository intentRepository;
 
     @Value("${mall.upload-dir:uploads}")
     private String uploadDir;
@@ -82,25 +86,6 @@ public class ProductService {
         return productRepository.save(p);
     }
 
-    /** 编辑商品：仅「在售 / 已恢复在售」可编辑；已下架、冻结中不可编辑 */
-    @Transactional
-    public Product update(Long id, String name, String description, String imageUrl, BigDecimal price, String category) {
-        Product p = getDetail(id);
-        if (p.getStatus() == ProductStatus.OFF_SHELF) {
-            throw new BizException("已下架商品不可编辑（历史商品只读）");
-        }
-        if (p.getStatus() == ProductStatus.FROZEN) {
-            throw new BizException("冻结中的商品不可编辑，请先解冻或完成交易");
-        }
-        p.setName(name);
-        p.setDescription(description);
-        p.setImageUrl(imageUrl);
-        p.setPrice(price);
-        p.setCategory(category);
-        p.setStock(1);
-        return productRepository.save(p);
-    }
-
     /** 卖家手动冻结：临时停售，冻结期间不接受新意向 */
     @Transactional
     public Product freeze(Long id) {
@@ -124,7 +109,7 @@ public class ProductService {
         return productRepository.save(p);
     }
 
-    /** 卖家手动下架：进入历史商品，不可再上架 */
+    /** 卖家手动下架：进入历史商品，不可再上架；未交易的等候意向一并作废 */
     @Transactional
     public Product offShelf(Long id) {
         Product p = getDetail(id);
@@ -132,6 +117,11 @@ public class ProductService {
             throw new BizException("仅「在售 / 已恢复在售」商品可手动下架");
         }
         p.setStatus(ProductStatus.OFF_SHELF);
+        for (PurchaseIntent other : intentRepository
+                .findByProductIdAndStatusOrderByQueueTimeAsc(id, IntentStatus.WAITING)) {
+            other.setStatus(IntentStatus.VOID);
+            intentRepository.save(other);
+        }
         return productRepository.save(p);
     }
 
