@@ -16,6 +16,7 @@ const FT = "Microsoft YaHei", FB = "Microsoft YaHei";
 const W = 10, H = 5.625;
 
 const IMG = (n) => path.join(__dirname, "docs", "wiki", "screenshots", n);
+const SLIDE = (n) => path.join(__dirname, "docs", "wiki", "slides", n);
 const shadow = () => ({ type: "outer", color: "000000", blur: 8, offset: 2, angle: 135, opacity: 0.1 });
 
 function pageNo(s, n) {
@@ -256,23 +257,91 @@ function img(s, name, x, y, w, h) {
   const head = (t) => ({ text: t, options: { bold: true, fill: { color: "6B8E7B" }, color: WHITE } });
   const rows = [
     [head("完成人"), head("承担工作"), head("成果物")],
-    ["方浩昱（后端②）", "A.1 商品模型与交易规则：库存/多图/二级分类字段、成交扣库存、归零自动下架、解除单品单卖", "Product.java / ProductService.java"],
+    ["方浩昱（后端②）", "A.1 商品模型与交易规则：库存/多图/二级分类字段、成交扣库存、归零下架、解除单品单卖", "Product.java / ProductService.java"],
     ["王则凯（后端①）", "A.1 接口层：商品发布/编辑/搜索、分类树与分类维护", "ProductController / CategoryController"],
     ["方浩昱（后端②）", "A.2 客户侧：Customer 实体、注册登录与 token 鉴权、意向关联、历史下单、商家客户视图", "Customer 系列 / CustomerInterceptor"],
-    ["丁月诚（前端）", "首页多商品+搜索+分类、详情多图富媒体、客户注册/登录/订单、卖家商品/客户管理", "8 个 Vue 页面 / router"],
-    ["方浩昱（测试执行）", "A.1/A.2 用例设计与实测 12 项全过、7 张升级后截图", "测试第八章 / screenshots 06~12"],
-    ["何易（文档/组长）", "A.1/A.2 需求登记与状态更新，报告与 PPT 同步「已实现」", "本报告 / 讲述版 PPT"],
-    ["方浩昱（测试执行）", "Sprint 1 基线复测：接口 14 项全过、5 张基线截图", "本报告第三章 / screenshots 01~05"],
-    ["何易（文档/组长）", "测试说明新增界面截图章节，整理第二次评审报告", "测试用例第六章 / 本报告"],
+    ["丁月诚（前端）", "首页多商品+搜索+分类、详情多图富媒体、客户注册/登录/订单、卖家商品与客户管理", "8 个 Vue 页面 / router"],
+    ["方浩昱（测试执行）", "A.1/A.2 接口用例 12 项全过、升级截图 7 张；基线复测 14 项、5 张截图", "测试第八章 / screenshots 01~12"],
+    ["戴英杰（测试）", "A.1/A.2 升级后界面走查与端到端验证；Sprint 1 主流程与规则约束验证", "端到端验证记录 / 本报告"],
+    ["何易（文档/组长）", "需求条目登记、报告与讲述版 PPT、测试说明同步、Wiki 发布", "本报告 / 14 页 PPT"],
   ];
-  s.addTable(rows, { x: 0.5, y: 1.18, w: 9, colW: [1.7, 4.7, 2.6], rowH: 0.4, fontFace: FB, fontSize: 8, color: INK, valign: "middle", border: { pt: 0.5, color: "DDD6CC" }, fill: { color: WHITE }, autoPage: false });
-  s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 4.85, w: 9, h: 0.45, fill: { color: SAND } });
-  s.addText("口径：A.1/A.2 代码于 2026-10-22 合并在提交 4f2fde7 中（便于统一联调），上表按模块归属列示。", { x: 0.72, y: 4.85, w: 8.6, h: 0.45, fontFace: FB, fontSize: 8.5, color: INK, valign: "middle", margin: 0 });
+  s.addTable(rows, { x: 0.5, y: 1.18, w: 9, colW: [1.75, 4.75, 2.5], rowH: 0.4, fontFace: FB, fontSize: 8.5, color: INK, valign: "middle", border: { pt: 0.5, color: "DDD6CC" }, fill: { color: WHITE }, autoPage: false });
+  s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 4.72, w: 9, h: 0.42, fill: { color: SAND } });
+  s.addText("口径：A.1/A.2 代码于 2026-10-22 合并在提交 4f2fde7 中（便于统一联调），上表按模块归属列示；下一节按人给出具体工作与界面成果。", { x: 0.72, y: 4.72, w: 8.6, h: 0.42, fontFace: FB, fontSize: 8.5, color: INK, valign: "middle", margin: 0 });
   pageNo(s, 11);
   s.addNotes("任务完成情况。第一次评审的 15 项任务保持完成。这一轮新增的是 A.1、A.2 的实现与验证，按模块归属列了六行：方浩昱负责商品模型和客户侧后端，王则凯负责商品接口层，丁月诚负责前端八个页面，测试执行和 12 项用例、7 张截图由方浩昱完成，我负责需求登记、报告和 PPT。另外两行是基线的复测补充。代码合并在一次提交里，所以表里注明按模块归属。");
 }
 
-// ============ P12 遗留问题 ============
+// ============ P12 分工到人（每人具体工作 + 界面成果图） ============
+{
+  const s = pres.addSlide();
+  header(s, "分工到人 · 每人具体工作与界面成果", "5 名成员各自承担的实现 / 验证范围，配对应模块界面实拍（A.1/A.2 升级 + Sprint 1 基线）", GREEN);
+
+  const pcard = (x, y, pic, name, role, lines, color) => {
+    const w = 2.9, h = 1.95;
+    s.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: WHITE }, line: { color: "E3DDD4", width: 0.75 }, shadow: shadow() });
+    s.addShape(pres.shapes.RECTANGLE, { x, y, w, h: 0.05, fill: { color } });
+    s.addImage({ path: pic, x: x + 0.1, y: y + 0.12, w: w - 0.2, h: 0.95, sizing: { type: "cover", w: w - 0.2, h: 0.95 } });
+    s.addText(
+      [{ text: name, options: { bold: true, fontSize: 11, color: INK } }, { text: "  " + role, options: { fontSize: 8, color: MUTED } }],
+      { x: x + 0.12, y: y + 1.02, w: w - 0.2, h: 0.24, fontFace: FB, valign: "middle", margin: 0 }
+    );
+    s.addText(
+      lines.map((t, i) => ({ text: t, options: { bullet: { code: "2022" }, breakLine: i < lines.length - 1, paraSpaceAfter: 2 } })),
+      { x: x + 0.12, y: y + 1.26, w: w - 0.2, h: h - 1.32, fontFace: FB, fontSize: 7.8, color: "4A423C", valign: "top", margin: 0, lineSpacingMultiple: 1.0 }
+    );
+  };
+
+  pcard(0.5, 1.1, IMG("06-home-multi.png"), "丁月诚", "前端", [
+    "首页多商品列表 + 关键词搜索",
+    "两级分类筛选、详情多图富媒体",
+    "客户注册/登录/订单、卖家管理页",
+  ], CLAY);
+
+  pcard(3.55, 1.1, IMG("07-product-detail.png"), "方浩昱", "后端②", [
+    "商品模型：库存 / 多图 / 两级分类",
+    "成交扣库存、归零自动下架",
+    "客户注册鉴权、历史下单、客户视图",
+  ], GREEN_D);
+
+  pcard(6.6, 1.1, IMG("11-seller-products-v2.png"), "王则凯", "后端①", [
+    "商品发布 / 编辑 / 搜索接口",
+    "分类树与分类维护接口",
+    "卖家侧接口联调与参数校验",
+  ], "8A6F47");
+
+  pcard(0.5, 3.12, IMG("12-seller-customers.png"), "戴英杰", "测试", [
+    "A.1/A.2 界面走查与端到端验证",
+    "12 项升级用例结果复核",
+    "Sprint 1 主流程与规则约束验证",
+  ], CLAY_D);
+
+  pcard(3.55, 3.12, SLIDE("slide01.png"), "何易", "文档 / 组长", [
+    "需求条目登记与状态更新",
+    "报告、14 页讲述版 PPT 与讲稿",
+    "测试说明同步、Wiki 发布与协调",
+  ], MUTED);
+
+  // 右下角统计块
+  const bx = 6.6, by = 3.12, bw = 2.9, bh = 1.95;
+  s.addShape(pres.shapes.RECTANGLE, { x: bx, y: by, w: bw, h: bh, fill: { color: SAND } });
+  s.addText("本轮交付规模", { x: bx + 0.15, y: by + 0.1, w: bw - 0.3, h: 0.28, fontFace: FB, fontSize: 11, bold: true, color: INK, valign: "middle", margin: 0 });
+  const statLines = [
+    ["提交", "4f2fde7"],
+    ["变更", "31 文件 / +1148 −546"],
+    ["验证", "12 用例 · 7 张截图"],
+    ["材料", "14 页 PPT · 本报告"],
+  ];
+  s.addText(
+    statLines.map((it, i) => ({ text: it[0] + "：" + it[1], options: { breakLine: i < statLines.length - 1, paraSpaceAfter: 3 } })),
+    { x: bx + 0.15, y: by + 0.45, w: bw - 0.3, h: bh - 0.55, fontFace: FB, fontSize: 8.5, color: "4A423C", valign: "top", margin: 0 }
+  );
+
+  pageNo(s, 12);
+  s.addNotes("这一页把分工落到每个人和具体界面上。丁月诚是前端：首页多商品列表、关键词搜索、两级分类筛选，还有详情页多图和富媒体，以及客户、卖家的几个页面 —— 对应截图右边就是首页。方浩昱是后端②：商品模型加了库存、多图、两级分类字段，成交扣库存、扣到零自动下架，客户侧的注册、鉴权、历史下单、商家客户视图也是他做的。王则凯是后端①：商品的发布编辑搜索接口、分类树和分类维护接口。戴英杰是测试：A.1/A.2 的界面走查和端到端验证，12 项升级用例结果复核，另外 Sprint 1 的主流程验证记录也是他。我这边是文档和组长工作：需求条目、报告、14 页讲述版 PPT、测试说明和 Wiki 发布。右下角是本轮的交付规模。");
+}
+
+// ============ P13 遗留问题 ============
 {
   const s = pres.addSlide();
   header(s, "遗留问题与风险", "均为增强项，不影响基线闭环与 A.1/A.2 主要验收", MUTED);
@@ -289,11 +358,11 @@ function img(s, name, x, y, w, h) {
   s.addTable(rows, { x: 0.5, y: 1.25, w: 9, colW: [2.3, 4.3, 2.4], rowH: 0.42, fontFace: FB, fontSize: 9.5, color: INK, valign: "middle", border: { pt: 0.5, color: "DDD6CC" }, fill: { color: WHITE }, autoPage: false });
   s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 4.35, w: 9, h: 0.8, fill: { color: SAND } });
   s.addText("这些项已写入第二次评审报告的「遗留问题与风险」表；其中「基线自检脚本多商品化」为下一迭代优先补齐的工程项。", { x: 0.72, y: 4.35, w: 8.6, h: 0.8, fontFace: FB, fontSize: 10.5, color: INK, valign: "middle", margin: 0 });
-  pageNo(s, 12);
+  pageNo(s, 13);
   s.addNotes("遗留项我如实列出，共六类：买家端历史浏览页没做、基线自检脚本需要多商品版、统计看板前端没接、意向终态命名要统一、并发没压测、录屏没做。它们都不影响基线闭环和 A.1、A.2 的主要验收，已写进第二次评审报告，后续按排期决定。");
 }
 
-// ============ P13 结论 ============
+// ============ P14 结论 ============
 {
   const s = pres.addSlide();
   s.background = { color: INK };
