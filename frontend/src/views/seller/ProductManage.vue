@@ -2,113 +2,78 @@
   <div>
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">发布商品</el-button>
-      <el-tag style="margin-left: 12px" type="warning">单品单卖：同一时刻仅允许 1 件在售</el-tag>
+      <el-tag style="margin-left: 12px" type="success">多商品：可同时发布多件商品</el-tag>
     </div>
 
     <el-table :data="products" border>
       <el-table-column prop="id" label="ID" width="60" />
       <el-table-column label="图片" width="90">
         <template #default="{ row }">
-          <el-image v-if="row.imageUrl" :src="row.imageUrl" style="width: 60px; height: 60px" fit="cover" />
+          <el-image v-if="firstImage(row)" :src="firstImage(row)" style="width: 60px; height: 60px" fit="cover" />
           <span v-else>—</span>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="名称" min-width="140" />
+      <el-table-column prop="name" label="名称" min-width="150" />
       <el-table-column label="价格" width="100">
         <template #default="{ row }">¥ {{ row.price }}</template>
       </el-table-column>
-      <el-table-column prop="category" label="分类" width="90" />
-      <el-table-column label="库存" width="70">
-        <template #default="{ row }">{{ row.stock }}</template>
+      <el-table-column label="分类" width="140">
+        <template #default="{ row }">
+          {{ row.category }}<template v-if="row.categoryL2"> / {{ row.categoryL2 }}</template>
+        </template>
       </el-table-column>
-      <el-table-column label="销量" width="80">
-        <template #default="{ row }">{{ row.sales }}</template>
-      </el-table-column>
+      <el-table-column prop="stock" label="库存" width="70" />
+      <el-table-column prop="sales" label="销量" width="70" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
           <el-tag :type="statusType[row.status]">{{ productStatus[row.status] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="createdAt" label="发布时间" width="180" />
-      <el-table-column label="操作" width="320">
+      <el-table-column label="操作" width="300">
         <template #default="{ row }">
+          <el-button size="small" @click="openEdit(row)">编辑</el-button>
           <el-button v-if="buyable(row.status)" size="small" type="warning" @click="action('freeze', row)">冻结</el-button>
           <el-button v-if="row.status === 'FROZEN'" size="small" type="success" @click="action('unfreeze', row)">解冻</el-button>
-          <el-button v-if="buyable(row.status)" size="small" @click="action('off-shelf', row)">手动下架</el-button>
-          <template v-if="row.status === 'OFF_SHELF'">
-            <el-tag size="small" type="info">历史商品（只读）</el-tag>
-            <el-button size="small" @click="openHistory(row)">查看</el-button>
-          </template>
+          <el-button v-if="buyable(row.status)" size="small" @click="action('off-shelf', row)">下架</el-button>
         </template>
       </el-table-column>
     </el-table>
 
-    <el-dialog v-model="historyVisible" title="历史商品详情" width="680px">
-      <template v-if="historyProduct">
-        <el-divider content-position="left">商品信息</el-divider>
-        <div class="hist-product">
-          <el-image v-if="historyProduct.imageUrl" :src="historyProduct.imageUrl" style="width: 96px; height: 96px" fit="cover" />
-          <ul class="hist-info">
-            <li><span>名称：</span>{{ historyProduct.name }}</li>
-            <li><span>分类：</span>{{ historyProduct.category || '—' }}</li>
-            <li><span>价格：</span>¥ {{ historyProduct.price }}</li>
-            <li><span>状态：</span>{{ productStatus[historyProduct.status] }}</li>
-            <li><span>库存：</span>{{ historyProduct.stock }}　<span>销量：</span>{{ historyProduct.sales }}</li>
-            <li><span>发布时间：</span>{{ historyProduct.createdAt }}</li>
-            <li v-if="historyProduct.soldAt"><span>成交时间：</span>{{ historyProduct.soldAt }}</li>
-          </ul>
-        </div>
-        <p class="hist-desc">{{ historyProduct.description }}</p>
-
-        <el-divider content-position="left">购买意向（买家姓名 / 电话）</el-divider>
-        <el-table :data="historyIntents" border empty-text="该商品暂无购买意向">
-          <el-table-column prop="buyerName" label="姓名" width="110" />
-          <el-table-column prop="buyerPhone" label="联系电话" width="140" />
-          <el-table-column prop="buyerNote" label="备注" min-width="120" />
-          <el-table-column prop="createdAt" label="提交时间" width="180" />
-          <el-table-column label="状态" width="100">
-            <template #default="{ row }">
-              <el-tag :type="intentType[row.status]">{{ intentStatus[row.status] }}</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column label="交易结果" width="100">
-            <template #default="{ row }">{{ row.result ? intentStatus[row.result] : '—' }}</template>
-          </el-table-column>
-        </el-table>
-
-        <el-pagination
-          class="pager"
-          layout="total, prev, pager, next"
-          :total="histTotal"
-          :page-size="histSize"
-          :current-page="histPage"
-          @current-change="(p) => { histPage = p; loadHistory() }"
-        />
-      </template>
-    </el-dialog>
-
-    <el-dialog v-model="dialog" title="发布商品" width="480px">
-      <el-form :model="form" label-width="70px">
+    <el-dialog v-model="dialog" :title="editingId ? '编辑商品' : '发布商品'" width="560px">
+      <el-form :model="form" label-width="80px">
         <el-form-item label="名称">
           <el-input v-model="form.name" />
         </el-form-item>
         <el-form-item label="描述">
-          <el-input v-model="form.description" type="textarea" :rows="3" />
+          <el-input v-model="form.description" type="textarea" :rows="4" placeholder="支持 HTML 富媒体描述" />
         </el-form-item>
         <el-form-item label="价格">
           <el-input-number v-model="form.price" :min="0.01" :precision="2" :step="10" />
         </el-form-item>
-        <el-form-item label="分类">
-          <el-select v-model="form.category" placeholder="选择或输入分类" filterable allow-create style="width: 100%">
-            <el-option v-for="c in categories" :key="c" :label="c" :value="c" />
+        <el-form-item label="库存">
+          <el-input-number v-model="form.stock" :min="0" :step="1" />
+        </el-form-item>
+        <el-form-item label="一级分类">
+          <el-select v-model="form.category" placeholder="选择一级分类" clearable style="width: 100%" @change="onCategoryChange">
+            <el-option v-for="t in tree" :key="t.id" :label="t.name" :value="t.name" />
+          </el-select>
+        </el-form-item>
+        <el-form-item label="二级分类">
+          <el-select v-model="form.categoryL2" placeholder="选择二级分类" clearable style="width: 100%" :disabled="!form.category">
+            <el-option v-for="ch in categoryChildren" :key="ch.id" :label="ch.name" :value="ch.name" />
           </el-select>
         </el-form-item>
         <el-form-item label="图片">
-          <div>
+          <div class="uploader">
             <el-upload :show-file-list="false" :http-request="upload" accept="image/*">
               <el-button>上传图片</el-button>
             </el-upload>
-            <el-image v-if="form.imageUrl" :src="form.imageUrl" style="width: 80px; height: 80px; margin-top: 8px" fit="cover" />
+            <div class="thumbs">
+              <div v-for="(img, i) in form.images" :key="i" class="thumb-item">
+                <el-image :src="img" style="width: 70px; height: 70px" fit="cover" />
+                <el-button link type="danger" size="small" @click="form.images.splice(i, 1)">删除</el-button>
+              </div>
+            </div>
           </div>
         </el-form-item>
       </el-form>
@@ -121,72 +86,94 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '../../api'
-import { productStatus, buyable, intentStatus } from '../../utils/status'
+import { productStatus, buyable } from '../../utils/status'
 
 const products = ref([])
+const tree = ref([])
 const dialog = ref(false)
-const form = ref({ name: '', description: '', price: 1, imageUrl: '', category: '' })
+const editingId = ref(null)
+const form = ref({ name: '', description: '', price: 1, stock: 1, category: '', categoryL2: '', images: [] })
 const statusType = { ON_SALE: 'success', RESTORED: 'success', FROZEN: 'warning', OFF_SHELF: 'info' }
-const intentType = { WAITING: 'warning', TRADING: 'primary', SUCCEEDED: 'success', FAILED: 'danger', VOID: 'info', CANCELED: 'info' }
-const categories = ['数码', '食品', '服饰', '家居', '美妆', '日用']
 
-const historyVisible = ref(false)
-const historyProduct = ref(null)
-const historyIntents = ref([])
-const histPage = ref(1)
-const histSize = ref(20)
-const histTotal = ref(0)
+const categoryChildren = computed(() => {
+  const t = tree.value.find((x) => x.name === form.value.category)
+  return t ? (t.children || []) : []
+})
 
-async function openHistory(row) {
-  historyProduct.value = row
-  historyIntents.value = []
-  histPage.value = 1
-  historyVisible.value = true
-  await loadHistory()
-}
-
-async function loadHistory() {
-  if (!historyProduct.value) return
-  const res = await http.get('/seller/intents', {
-    params: { productId: historyProduct.value.id, page: histPage.value - 1, size: histSize.value }
-  })
-  historyIntents.value = res.content
-  histTotal.value = res.totalElements
+function firstImage(row) {
+  if (row.images) {
+    const a = row.images.split(',').filter(Boolean)
+    if (a.length) return a[0]
+  }
+  return row.imageUrl || ''
 }
 
 async function load() {
   products.value = await http.get('/seller/products')
+  tree.value = await http.get('/categories')
 }
 
 function openCreate() {
-  form.value = { name: '', description: '', price: 1, imageUrl: '', category: '' }
+  editingId.value = null
+  form.value = { name: '', description: '', price: 1, stock: 1, category: '', categoryL2: '', images: [] }
   dialog.value = true
 }
 
-async function save() {
-  await http.post('/seller/products', { ...form.value })
-  dialog.value = false
-  ElMessage.success('发布成功')
-  load()
+function openEdit(row) {
+  editingId.value = row.id
+  const imgs = row.images ? row.images.split(',').filter(Boolean) : (row.imageUrl ? [row.imageUrl] : [])
+  form.value = {
+    name: row.name,
+    description: row.description || '',
+    price: row.price,
+    stock: row.stock,
+    category: row.category || '',
+    categoryL2: row.categoryL2 || '',
+    images: imgs
+  }
+  dialog.value = true
+}
+
+function onCategoryChange() {
+  form.value.categoryL2 = ''
 }
 
 async function upload({ file }) {
   const fd = new FormData()
   fd.append('file', file)
   const url = await http.post('/seller/upload', fd)
-  form.value.imageUrl = url
+  form.value.images.push(url)
   ElMessage.success('上传成功')
 }
 
-async function action(type, row) {
-  const map = {
-    freeze: '冻结（冻结期间不接受新的购买意向）',
-    unfreeze: '解冻并恢复在售',
-    'off-shelf': '手动下架（进入历史商品，不可再上架）'
+async function save() {
+  if (!form.value.name.trim()) return ElMessage.warning('请填写商品名称')
+  const payload = {
+    name: form.value.name,
+    description: form.value.description,
+    imageUrl: form.value.images[0] || '',
+    images: form.value.images.join(','),
+    price: form.value.price,
+    category: form.value.category,
+    categoryL2: form.value.categoryL2,
+    stock: form.value.stock
   }
+  if (editingId.value) {
+    await http.put(`/seller/products/${editingId.value}`, payload)
+    ElMessage.success('修改成功')
+  } else {
+    await http.post('/seller/products', payload)
+    ElMessage.success('发布成功')
+  }
+  dialog.value = false
+  load()
+}
+
+async function action(type, row) {
+  const map = { freeze: '冻结', unfreeze: '解冻并恢复在售', 'off-shelf': '手动下架' }
   await ElMessageBox.confirm(`确认${map[type]}商品「${row.name}」？`, '提示', { type: 'warning' })
   await http.post(`/seller/products/${row.id}/${type}`)
   ElMessage.success('操作成功')
@@ -197,36 +184,8 @@ onMounted(load)
 </script>
 
 <style scoped>
-.toolbar {
-  margin-bottom: 16px;
-}
-.readonly {
-  color: #a09890;
-  font-size: 12px;
-}
-.hist-product {
-  display: flex;
-  gap: 16px;
-}
-.hist-info {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  font-size: 14px;
-  color: #4b4540;
-  line-height: 1.9;
-}
-.hist-info span {
-  color: #8a8178;
-}
-.hist-desc {
-  margin: 12px 0 0;
-  color: #6b625b;
-  font-size: 13px;
-  line-height: 1.7;
-}
-.pager {
-  margin-top: 16px;
-  justify-content: center;
-}
+.toolbar { margin-bottom: 16px; }
+.uploader { display: flex; flex-direction: column; gap: 8px; }
+.thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
+.thumb-item { display: flex; flex-direction: column; align-items: center; }
 </style>

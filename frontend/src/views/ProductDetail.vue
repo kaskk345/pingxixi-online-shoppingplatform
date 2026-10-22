@@ -6,8 +6,15 @@
       <span class="spacer"></span>
     </header>
 
-    <div class="img-wrap">
-      <img :src="p.imageUrl" :alt="p.name" />
+    <div class="gallery">
+      <el-carousel v-if="images.length > 1" height="340px" indicator-position="outside">
+        <el-carousel-item v-for="(img, i) in images" :key="i">
+          <img class="carousel-img" :src="img" />
+        </el-carousel-item>
+      </el-carousel>
+      <div v-else class="single">
+        <img :src="images[0] || p.imageUrl" :alt="p.name" />
+      </div>
     </div>
 
     <div class="info">
@@ -16,17 +23,17 @@
         <span class="status">{{ productStatus[p.status] || p.status }}</span>
       </div>
       <h2 class="name">{{ p.name }}</h2>
-      <p class="desc">{{ p.description }}</p>
+      <div class="rich" v-html="p.description"></div>
       <div class="meta">
-        <span class="tag">{{ p.category }}</span>
-        <span class="stock">仅此 {{ p.stock }} 件</span>
+        <span class="tag">{{ p.category }}<template v-if="p.categoryL2"> / {{ p.categoryL2 }}</template></span>
+        <span class="stock">库存 {{ p.stock }} 件</span>
       </div>
-      <p class="note">单品单卖：全站同一时刻只有一件商品在售，售出后才会开始制作下一件。</p>
+      <p class="note">注册客户登录后下单，可在「我的订单」中查看历史下单记录。</p>
     </div>
 
     <div class="bottom">
-      <el-button size="large" type="danger" :disabled="!buyable(p.status)" @click="openBuy">
-        {{ buyable(p.status) ? '提交购买意向' : '商品交易中，暂不接受新的意向' }}
+      <el-button size="large" type="danger" :disabled="!canBuy" @click="openBuy">
+        {{ canBuy ? '提交购买意向' : '暂时无法购买' }}
       </el-button>
     </div>
 
@@ -51,7 +58,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import http from '../api'
@@ -61,6 +68,17 @@ const route = useRoute()
 const p = ref(null)
 const visible = ref(false)
 const form = ref({ buyerName: '', buyerPhone: '', buyerNote: '' })
+
+const images = computed(() => {
+  if (!p.value) return []
+  if (p.value.images) {
+    const arr = p.value.images.split(',').filter(Boolean)
+    if (arr.length) return arr
+  }
+  return p.value.imageUrl ? [p.value.imageUrl] : []
+})
+
+const canBuy = computed(() => p.value && buyable(p.value.status) && p.value.stock > 0)
 
 async function load() {
   p.value = await http.get('/products/' + route.params.id)
@@ -83,7 +101,7 @@ async function submitIntent() {
       buyerNote
     })
     visible.value = false
-    ElMessage.success(`意向提交成功，意向编号 ${res.id}`)
+    ElMessage.success(`意向提交成功，口令码 ${res.code}`)
   } catch (e) {
     /* 拦截器已提示错误 */
   }
@@ -93,96 +111,24 @@ onMounted(load)
 </script>
 
 <style scoped>
-.detail {
-  background: #fbf8f3;
-  min-height: 100vh;
-  padding-bottom: 90px;
-}
-.header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  background: #fff;
-  font-size: 18px;
-}
-.back {
-  cursor: pointer;
-  font-size: 24px;
-}
-.spacer {
-  flex: 1;
-}
-.img-wrap {
-  width: 100%;
-  aspect-ratio: 1;
-  background: #f0ede7;
-}
-.img-wrap img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.info {
-  background: #fff;
-  padding: 16px;
-}
-.price-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-.price {
-  color: #b85042;
-  font-size: 28px;
-  font-weight: 700;
-}
-.price i {
-  font-style: normal;
-  font-size: 16px;
-}
-.status {
-  color: #8a8178;
-  font-size: 13px;
-}
-.name {
-  font-size: 18px;
-  margin: 10px 0 6px;
-}
-.desc {
-  color: #666;
-  font-size: 14px;
-  line-height: 1.6;
-}
-.meta {
-  display: flex;
-  gap: 12px;
-  margin-top: 12px;
-  font-size: 13px;
-  color: #666;
-  align-items: center;
-}
-.tag {
-  background: #fdecec;
-  color: #b85042;
-  padding: 2px 8px;
-  border-radius: 4px;
-}
-.note {
-  margin-top: 12px;
-  font-size: 12px;
-  color: #a09890;
-  line-height: 1.7;
-}
-.bottom {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: #fff;
-  display: flex;
-  justify-content: center;
-  padding: 12px 16px;
-  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06);
-}
+.detail { background: #fbf8f3; min-height: 100vh; padding-bottom: 90px; }
+.header { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: #fff; font-size: 18px; }
+.back { cursor: pointer; font-size: 24px; }
+.spacer { flex: 1; }
+.gallery { background: #fff; }
+.single { width: 100%; aspect-ratio: 1; background: #f0ede7; }
+.single img { width: 100%; height: 100%; object-fit: cover; }
+.carousel-img { width: 100%; height: 100%; object-fit: cover; }
+.info { background: #fff; padding: 16px; }
+.price-row { display: flex; align-items: baseline; justify-content: space-between; }
+.price { color: #b85042; font-size: 28px; font-weight: 700; }
+.price i { font-style: normal; font-size: 16px; }
+.status { color: #8a8178; font-size: 13px; }
+.name { font-size: 18px; margin: 10px 0 6px; }
+.rich { color: #666; font-size: 14px; line-height: 1.7; }
+.rich :deep(img) { max-width: 100%; }
+.meta { display: flex; gap: 12px; margin-top: 12px; font-size: 13px; color: #666; align-items: center; }
+.tag { background: #fdecec; color: #b85042; padding: 2px 8px; border-radius: 4px; }
+.note { margin-top: 12px; font-size: 12px; color: #a09890; line-height: 1.7; }
+.bottom { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; display: flex; justify-content: center; padding: 12px 16px; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06); }
 </style>

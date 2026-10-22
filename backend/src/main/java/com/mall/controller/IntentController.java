@@ -21,13 +21,16 @@ import java.util.List;
 public class IntentController {
 
     private final IntentService intentService;
+    private final com.mall.auth.CustomerTokenStore customerTokenStore;
 
     // ===== 买家端：凭口令码管理自己的意向 =====
 
-    /** 提交购买意向，返回时带上口令码 */
+    /** 提交购买意向，返回时带上口令码；携带客户 token 时关联客户，便于查看历史订单 */
     @PostMapping("/intents")
-    public Result<PurchaseIntent> submit(@Valid @RequestBody IntentReq req) {
-        return Result.ok(intentService.submit(req.productId(), req.buyerName(), req.buyerPhone(), req.buyerNote()));
+    public Result<PurchaseIntent> submit(@Valid @RequestBody IntentReq req,
+                                         jakarta.servlet.http.HttpServletRequest request) {
+        Long customerId = customerTokenStore.get(request.getHeader("X-Token"));
+        return Result.ok(intentService.submit(req.productId(), customerId, req.buyerName(), req.buyerPhone(), req.buyerNote()));
     }
 
     /** 凭口令码查询：排队位次 / 是否进交易 */

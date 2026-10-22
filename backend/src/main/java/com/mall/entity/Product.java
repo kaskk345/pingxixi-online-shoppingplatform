@@ -28,9 +28,17 @@ public class Product {
 
     private String imageUrl;
 
-    /** 分类，如：数码 / 食品 / 服饰 / 家居 / 美妆 */
+    /** 一级分类（原 category，兼容旧数据） */
     @Column(length = 30)
     private String category;
+
+    /** 二级分类 */
+    @Column(length = 30)
+    private String categoryL2;
+
+    /** 多张商品图片，逗号分隔的 URL */
+    @Column(columnDefinition = "TEXT")
+    private String images;
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal price;

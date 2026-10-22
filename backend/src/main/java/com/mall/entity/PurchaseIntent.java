@@ -22,6 +22,9 @@ public class PurchaseIntent {
 
     private Long productId;
 
+    /** 下单客户 ID（注册客户下单时关联；null 表示免注册访客下单） */
+    private Long customerId;
+
     /**
      * 口令码：提交意向时生成，一个意向对应一个码。
      * 买家凭它查询排队位次、修改姓名电话、撤销意向；卖家侧不展示。

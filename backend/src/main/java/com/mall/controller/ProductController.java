@@ -23,20 +23,24 @@ public class ProductController {
 
     // ===== 买家端 =====
 
-    /** 当前唯一可购买的商品（在售 / 已恢复在售；没有则 data 为 null） */
+    /** 兼容旧接口：第一件可购买商品 */
     @GetMapping("/products/on-sale")
     public Result<Product> onSale() {
         return Result.ok(productService.currentOnSale());
     }
 
+    /** 商品列表（多商品，浏览用） */
     @GetMapping("/products")
     public Result<List<Product>> list() {
         return Result.ok(productService.listOnSale());
     }
 
-    @GetMapping("/categories")
-    public Result<List<String>> categories() {
-        return Result.ok(productService.categories());
+    /** 搜索：关键词 + 一级/二级分类 */
+    @GetMapping("/products/search")
+    public Result<List<Product>> search(@RequestParam(required = false) String keyword,
+                                        @RequestParam(required = false) String categoryL1,
+                                        @RequestParam(required = false) String categoryL2) {
+        return Result.ok(productService.search(keyword, categoryL1, categoryL2));
     }
 
     @GetMapping("/products/{id}")
@@ -52,11 +56,18 @@ public class ProductController {
         return Result.ok(productService.listAll());
     }
 
-    /** 发布商品：直接「在售」；已有可购买商品时禁止发布 */
+    /** 发布商品：支持多商品、库存、二级分类、多图 */
     @PostMapping("/seller/products")
     public Result<Product> publish(@Valid @RequestBody ProductReq req) {
-        return Result.ok(productService.publish(req.name(), req.description(), req.imageUrl(),
-                req.price(), req.category()));
+        return Result.ok(productService.publish(req.name(), req.description(), req.imageUrl(), req.images(),
+                req.price(), req.category(), req.categoryL2(), req.stock()));
+    }
+
+    /** 编辑商品（含库存；库存为 0 自动下架） */
+    @PutMapping("/seller/products/{id}")
+    public Result<Product> update(@PathVariable Long id, @RequestBody ProductReq req) {
+        return Result.ok(productService.update(id, req.name(), req.description(), req.imageUrl(), req.images(),
+                req.price(), req.category(), req.categoryL2(), req.stock()));
     }
 
     /** 手动冻结：临时停售，冻结期间不接受新意向 */
@@ -86,9 +97,12 @@ public class ProductController {
             @NotBlank(message = "商品名称不能为空") String name,
             String description,
             String imageUrl,
+            String images,
             @NotNull(message = "价格不能为空")
             @DecimalMin(value = "0.01", message = "价格必须大于 0") BigDecimal price,
-            String category
+            String category,
+            String categoryL2,
+            Integer stock
     ) {
     }
 }

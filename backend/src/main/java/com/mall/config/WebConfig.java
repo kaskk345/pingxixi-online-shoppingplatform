@@ -1,6 +1,7 @@
 package com.mall.config;
 
 import com.mall.auth.AuthInterceptor;
+import com.mall.auth.CustomerInterceptor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -14,12 +15,14 @@ import java.nio.file.Paths;
 public class WebConfig implements WebMvcConfigurer {
 
     private final AuthInterceptor authInterceptor;
+    private final CustomerInterceptor customerInterceptor;
 
     @Value("${mall.upload-dir:uploads}")
     private String uploadDir;
 
-    public WebConfig(AuthInterceptor authInterceptor) {
+    public WebConfig(AuthInterceptor authInterceptor, CustomerInterceptor customerInterceptor) {
         this.authInterceptor = authInterceptor;
+        this.customerInterceptor = customerInterceptor;
     }
 
     @Override
@@ -27,6 +30,9 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(authInterceptor)
                 .addPathPatterns("/api/seller/**")
                 .excludePathPatterns("/api/seller/login");
+        registry.addInterceptor(customerInterceptor)
+                .addPathPatterns("/api/customer/**")
+                .excludePathPatterns("/api/customer/login", "/api/customer/register");
     }
 
     @Override

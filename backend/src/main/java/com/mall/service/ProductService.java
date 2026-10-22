@@ -24,7 +24,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 /**
- * 商品服务（单品单卖 + 四态状态机）。
+ * 商品服务（升级版：多商品 + 二级分类 + 库存）。
  */
 @Service
 @RequiredArgsConstructor
@@ -41,15 +41,19 @@ public class ProductService {
 
     // ===== 查询 =====
 
-    /** 买家端：当前可购买的唯一一件商品（没有则返回 null） */
+    /** 兼容旧接口：返回第一件可购买商品 */
     public Product currentOnSale() {
         return productRepository.findFirstByStatusIn(BUYABLE).orElse(null);
     }
 
+    /** 买家端：所有可购买且有库存的商品（多商品） */
     public List<Product> listOnSale() {
-        return productRepository.findAllByOrderByCreatedAtDesc().stream()
-                .filter(p -> p.getStatus().buyable())
-                .toList();
+        return productRepository.findByStatusInAndStockGreaterThanOrderByCreatedAtDesc(BUYABLE, 0);
+    }
+
+    /** 搜索 / 浏览：关键词 + 一级/二级分类，仅可购买且有库存 */
+    public List<Product> search(String keyword, String categoryL1, String categoryL2) {
+        return productRepository.search(BUYABLE, keyword, categoryL1, categoryL2);
     }
 
     public List<String> categories() {
@@ -72,17 +76,40 @@ public class ProductService {
 
     // ===== 卖家操作 =====
 
-    /** 发布商品：直接「在售」；单品单卖，已有一件可购买商品时禁止发布 */
+    /** 发布商品：支持多商品、库存、二级分类、多图 */
     @Transactional
-    public Product publish(String name, String description, String imageUrl, BigDecimal price, String category) {
-        if (productRepository.existsByStatusIn(BUYABLE)) {
-            throw new BizException("已有商品在售，需先完成当前商品交易或手动下架后再发布新商品");
-        }
+    public Product publish(String name, String description, String imageUrl, String images,
+                           BigDecimal price, String category, String categoryL2, Integer stock) {
+        int s = (stock == null || stock < 0) ? 1 : stock;
         Product p = Product.builder()
-                .name(name).description(description).imageUrl(imageUrl)
-                .price(price).category(category)
-                .stock(1)
-                .status(ProductStatus.ON_SALE).build();
+                .name(name).description(description).imageUrl(imageUrl).images(images)
+                .price(price).category(category).categoryL2(categoryL2)
+                .stock(s)
+                .status(s > 0 ? ProductStatus.ON_SALE : ProductStatus.OFF_SHELF)
+                .build();
+        return productRepository.save(p);
+    }
+
+    /** 编辑商品：修改信息与库存；库存为 0 自动下架 */
+    @Transactional
+    public Product update(Long id, String name, String description, String imageUrl, String images,
+                          BigDecimal price, String category, String categoryL2, Integer stock) {
+        Product p = getDetail(id);
+        if (name != null) p.setName(name);
+        if (description != null) p.setDescription(description);
+        if (imageUrl != null) p.setImageUrl(imageUrl);
+        if (images != null) p.setImages(images);
+        if (price != null) p.setPrice(price);
+        if (category != null) p.setCategory(category);
+        if (categoryL2 != null) p.setCategoryL2(categoryL2);
+        if (stock != null) {
+            p.setStock(stock);
+            if (stock <= 0) {
+                p.setStatus(ProductStatus.OFF_SHELF);
+            } else if (p.getStatus() == ProductStatus.OFF_SHELF) {
+                p.setStatus(ProductStatus.ON_SALE);
+            }
+        }
         return productRepository.save(p);
     }
 
@@ -97,24 +124,26 @@ public class ProductService {
         return productRepository.save(p);
     }
 
-    /** 卖家手动解冻：恢复到在售 */
+    /** 卖家手动解冻：恢复到在售（需有库存） */
     @Transactional
     public Product unfreeze(Long id) {
         Product p = getDetail(id);
         if (p.getStatus() != ProductStatus.FROZEN) {
             throw new BizException("仅「已冻结」商品可解冻");
         }
+        if (p.getStock() == null || p.getStock() <= 0) {
+            throw new BizException("库存为 0，无法解冻");
+        }
         p.setStatus(ProductStatus.ON_SALE);
-        p.setStock(1);
         return productRepository.save(p);
     }
 
-    /** 卖家手动下架：进入历史商品，不可再上架；未交易的等候意向一并作废 */
+    /** 卖家手动下架：进入历史商品，未交易的等候意向一并作废 */
     @Transactional
     public Product offShelf(Long id) {
         Product p = getDetail(id);
-        if (!p.getStatus().buyable()) {
-            throw new BizException("仅「在售 / 已恢复在售」商品可手动下架");
+        if (!p.getStatus().buyable() && p.getStatus() != ProductStatus.FROZEN) {
+            throw new BizException("仅「在售 / 已恢复在售 / 已冻结」商品可手动下架");
         }
         p.setStatus(ProductStatus.OFF_SHELF);
         for (PurchaseIntent other : intentRepository
@@ -125,17 +154,23 @@ public class ProductService {
         return productRepository.save(p);
     }
 
-    /** 交易成功：已冻结 -> 已下架（不用先解冻），商品进入历史 */
+    /** 交易成功：扣减库存；库存归零则下架，否则回到在售，可继续销售 */
     @Transactional
     public Product markSoldByTrade(Long productId) {
         Product p = getDetail(productId);
         if (p.getStatus() != ProductStatus.FROZEN) {
             throw new BizException("仅「已冻结」商品可标记交易成功");
         }
-        p.setStatus(ProductStatus.OFF_SHELF);
-        p.setStock(0);
-        p.setSales(p.getSales() == null ? 1 : p.getSales() + 1);
+        int left = (p.getStock() == null ? 0 : p.getStock()) - 1;
+        p.setSales((p.getSales() == null ? 0 : p.getSales()) + 1);
         p.setSoldAt(LocalDateTime.now());
+        if (left <= 0) {
+            p.setStock(0);
+            p.setStatus(ProductStatus.OFF_SHELF);
+        } else {
+            p.setStock(left);
+            p.setStatus(ProductStatus.ON_SALE);
+        }
         return productRepository.save(p);
     }
 
@@ -147,7 +182,6 @@ public class ProductService {
             throw new BizException("仅「已冻结」商品可标记交易失败");
         }
         p.setStatus(ProductStatus.RESTORED);
-        p.setStock(1);
         return productRepository.save(p);
     }
 

@@ -29,4 +29,8 @@ public interface PurchaseIntentRepository extends JpaRepository<PurchaseIntent, 
     Optional<PurchaseIntent> findByCode(String code);
 
     Optional<PurchaseIntent> findByCodeAndStatus(String code, IntentStatus status);
+
+    List<PurchaseIntent> findByCustomerIdOrderByCreatedAtDesc(Long customerId);
+
+    Page<PurchaseIntent> findByCustomerIdOrderByCreatedAtDesc(Long customerId, Pageable pageable);
 }

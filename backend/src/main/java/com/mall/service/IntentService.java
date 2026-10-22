@@ -41,9 +41,15 @@ public class IntentService {
 
     // ===== 买家端 =====
 
-    /** 提交购买意向：只填姓名与电话，生成一个口令码 */
+    /** 提交购买意向（免注册访客） */
     @Transactional
     public PurchaseIntent submit(Long productId, String name, String phone, String note) {
+        return submit(productId, null, name, phone, note);
+    }
+
+    /** 提交购买意向（注册客户可关联 customerId，用于查看历史下单） */
+    @Transactional
+    public PurchaseIntent submit(Long productId, Long customerId, String name, String phone, String note) {
         Product p = productRepository.findById(productId)
                 .orElseThrow(() -> new BizException("商品不存在"));
         if (!p.getStatus().buyable()) {
@@ -51,6 +57,7 @@ public class IntentService {
         }
         PurchaseIntent intent = PurchaseIntent.builder()
                 .productId(productId)
+                .customerId(customerId)
                 .buyerName(name.trim())
                 .buyerPhone(phone.trim())
                 .buyerNote(note)
@@ -110,6 +117,13 @@ public class IntentService {
     public org.springframework.data.domain.Page<IntentView> listByProduct(Long productId, org.springframework.data.domain.Pageable pageable) {
         return intentRepository.findByProductIdOrderByQueueTimeAsc(productId, pageable)
                 .map(i -> toView(i, productRepository.findById(i.getProductId()).orElse(null), false, false));
+    }
+
+    /** 客户历史下单记录（客户登录后查看） */
+    public List<IntentView> listByCustomer(Long customerId) {
+        return intentRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
+                .map(i -> toView(i, productRepository.findById(i.getProductId()).orElse(null), true, true))
+                .toList();
     }
 
     public List<IntentView> listAll() {

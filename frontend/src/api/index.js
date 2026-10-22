@@ -3,8 +3,15 @@ import { ElMessage } from 'element-plus'
 
 const http = axios.create({ baseURL: '/api', timeout: 10000 })
 
+function isSellerRequest(url = '') {
+  return url.startsWith('/seller')
+}
+
 http.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token')
+  const url = config.url || ''
+  const token = isSellerRequest(url)
+    ? localStorage.getItem('token')
+    : localStorage.getItem('customerToken')
   if (token) config.headers['X-Token'] = token
   return config
 })
@@ -20,10 +27,17 @@ http.interceptors.response.use(
   },
   (err) => {
     const status = err.response?.status
+    const url = err.config?.url || ''
     if (status === 401) {
-      localStorage.removeItem('token')
-      ElMessage.error('登录已过期，请重新登录')
-      setTimeout(() => { window.location.href = '/login' }, 600)
+      if (isSellerRequest(url)) {
+        localStorage.removeItem('token')
+        ElMessage.error('登录已过期，请重新登录')
+        setTimeout(() => { window.location.href = '/login' }, 600)
+      } else {
+        localStorage.removeItem('customerToken')
+        ElMessage.error('请先登录客户账号')
+        setTimeout(() => { window.location.href = '/customer/login' }, 600)
+      }
     } else {
       ElMessage.error(err.response?.data?.message || '网络异常')
     }
