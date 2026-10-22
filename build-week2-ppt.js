@@ -187,7 +187,7 @@ function stat(s, x, y, w, h, num, label, color) {
   const head = (t) => ({ text: t, options: { bold: true, fill: { color: "6B8E7B" }, color: WHITE } });
   const rows = [
     [head("完成人"), head("本次补充工作"), head("成果物")],
-    ["戴英杰（测试）", "对运行态复测接口自检，输出 14 项全过结论；补充 5 张 UI 截图", "本报告、docs/wiki/screenshots/"],
+    ["方浩昱（测试）", "对运行态复测接口自检，输出 14 项全过结论；补充 5 张 UI 截图", "本报告、docs/wiki/screenshots/"],
     ["何易（文档/组长）", "在测试说明中新增界面截图章节；整理第二次评审报告与 Wiki 页", "测试用例与运行说明（第六章）、本报告"],
   ];
   s.addTable(rows, { x: 0.5, y: 1.35, w: 9, colW: [1.9, 4.3, 2.8], rowH: 0.6, fontFace: FB, fontSize: 10, color: INK, valign: "middle", border: { pt: 0.5, color: "DDD6CC" }, fill: { color: WHITE }, autoPage: false });
