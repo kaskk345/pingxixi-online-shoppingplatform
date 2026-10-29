@@ -58,7 +58,9 @@ public class IntentService {
         Product p = productRepository.findById(productId)
                 .orElseThrow(() -> new BizException("商品不存在"));
         if (!p.getStatus().buyable()) {
-            throw new BizException("商品交易中，暂不接受新的购买意向");
+            throw new BizException(p.getStatus() == ProductStatus.OFF_SHELF
+                    ? "商品已下架，无法提交购买意向"
+                    : "商品已冻结停售，暂不接受新的购买意向");
         }
         // 提交意向即预占 1 件库存，防止超卖
         if (!productService.reserveStock(productId)) {
