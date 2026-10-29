@@ -1,7 +1,9 @@
 package com.mall.controller;
 
 import com.mall.common.Result;
+import com.mall.dto.SellerIntentView;
 import com.mall.entity.Product;
+import com.mall.service.IntentService;
 import com.mall.service.ProductService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
@@ -20,6 +22,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final IntentService intentService;
 
     // ===== 买家端 =====
 
@@ -54,6 +57,12 @@ public class ProductController {
     @GetMapping("/seller/products")
     public Result<List<Product>> sellerList() {
         return Result.ok(productService.listAll());
+    }
+
+    /** 以商品为主体的交易历史（含终态、匿名买家与注册客户） */
+    @GetMapping("/seller/products/{id}/history")
+    public Result<List<SellerIntentView>> history(@PathVariable Long id) {
+        return Result.ok(intentService.historyByProduct(id));
     }
 
     /** 发布商品：支持多商品、库存、二级分类、多图 */

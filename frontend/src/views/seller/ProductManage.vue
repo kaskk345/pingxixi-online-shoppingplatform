@@ -3,6 +3,7 @@
     <div class="toolbar">
       <el-button type="primary" @click="openCreate">发布商品</el-button>
       <el-tag style="margin-left: 12px" type="success">多商品：可同时发布多件商品</el-tag>
+      <el-tag style="margin-left: 8px" type="danger" effect="dark">新版：点商品名可查看交易历史</el-tag>
     </div>
 
     <el-table :data="products" border>
@@ -13,7 +14,12 @@
           <span v-else>—</span>
         </template>
       </el-table-column>
-      <el-table-column prop="name" label="名称" min-width="150" />
+      <el-table-column label="名称" min-width="170">
+        <template #default="{ row }">
+          <el-link type="primary" :underline="false" @click="openHistory(row)">{{ row.name }}</el-link>
+          <el-tag size="small" type="info" effect="plain" class="history-tag" @click="openHistory(row)">交易历史</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="价格" width="100">
         <template #default="{ row }">¥ {{ row.price }}</template>
       </el-table-column>
@@ -29,8 +35,9 @@
           <el-tag :type="statusType[row.status]">{{ productStatus[row.status] }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="操作" width="300">
+      <el-table-column label="操作" width="400">
         <template #default="{ row }">
+          <el-button size="small" type="primary" plain @click="openHistory(row)">交易历史</el-button>
           <el-button size="small" @click="openEdit(row)">编辑</el-button>
           <el-button v-if="buyable(row.status)" size="small" type="warning" @click="action('freeze', row)">冻结</el-button>
           <el-button v-if="row.status === 'FROZEN'" size="small" type="success" @click="action('unfreeze', row)">解冻</el-button>
@@ -87,10 +94,12 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import http from '../../api'
 import { productStatus, buyable } from '../../utils/status'
 
+const router = useRouter()
 const products = ref([])
 const tree = ref([])
 const dialog = ref(false)
@@ -135,6 +144,10 @@ function openEdit(row) {
     images: imgs
   }
   dialog.value = true
+}
+
+function openHistory(row) {
+  router.push(`/seller/products/${row.id}/history`)
 }
 
 function onCategoryChange() {
@@ -185,6 +198,7 @@ onMounted(load)
 
 <style scoped>
 .toolbar { margin-bottom: 16px; }
+.history-tag { margin-left: 8px; cursor: pointer; }
 .uploader { display: flex; flex-direction: column; gap: 8px; }
 .thumbs { display: flex; gap: 10px; flex-wrap: wrap; }
 .thumb-item { display: flex; flex-direction: column; align-items: center; }

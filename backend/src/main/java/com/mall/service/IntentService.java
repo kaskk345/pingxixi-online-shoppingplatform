@@ -2,10 +2,13 @@ package com.mall.service;
 
 import com.mall.common.BizException;
 import com.mall.dto.IntentView;
+import com.mall.dto.SellerIntentView;
+import com.mall.entity.Customer;
 import com.mall.entity.Product;
 import com.mall.entity.PurchaseIntent;
 import com.mall.entity.enums.IntentStatus;
 import com.mall.entity.enums.ProductStatus;
+import com.mall.repository.CustomerRepository;
 import com.mall.repository.ProductRepository;
 import com.mall.repository.PurchaseIntentRepository;
 import lombok.RequiredArgsConstructor;
@@ -39,6 +42,7 @@ public class IntentService {
     private final PurchaseIntentRepository intentRepository;
     private final ProductRepository productRepository;
     private final ProductService productService;
+    private final CustomerRepository customerRepository;
 
     // ===== 买家端 =====
 
@@ -131,6 +135,31 @@ public class IntentService {
     public List<IntentView> listByCustomer(Long customerId) {
         return intentRepository.findByCustomerIdOrderByCreatedAtDesc(customerId).stream()
                 .map(i -> toView(i, productRepository.findById(i.getProductId()).orElse(null), true, true))
+                .toList();
+    }
+
+    /**
+     * 卖家端：以商品为主体的交易历史。
+     * 返回该商品的全部意向（含终态），匿名买家同样保留姓名/电话，注册客户额外带用户名。
+     */
+    public List<SellerIntentView> historyByProduct(Long productId) {
+        return intentRepository.findByProductIdOrderByQueueTimeAsc(productId).stream()
+                .map(i -> new SellerIntentView(
+                        i.getId(),
+                        i.getProductId(),
+                        i.getBuyerName(),
+                        i.getBuyerPhone(),
+                        i.getCustomerId(),
+                        i.getCustomerId() == null ? null
+                                : customerRepository.findById(i.getCustomerId())
+                                        .map(Customer::getUsername).orElse(null),
+                        i.getStatus().name(),
+                        i.getStatus().getLabel(),
+                        i.getResult() == null ? null : i.getResult().name(),
+                        i.getResult() == null ? null : i.getResult().getLabel(),
+                        i.getQueueTime(),
+                        i.getCreatedAt()
+                ))
                 .toList();
     }
 

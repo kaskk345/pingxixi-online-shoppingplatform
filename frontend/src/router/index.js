@@ -14,6 +14,12 @@ const routes = [
     children: [
       { path: '', redirect: '/seller/products' },
       { path: 'products', name: 'products', component: () => import('../views/seller/ProductManage.vue') },
+      {
+        path: 'products/:id/history',
+        name: 'productHistory',
+        component: () => import('../views/seller/ProductHistory.vue'),
+        meta: { activeMenu: '/seller/products' }
+      },
       { path: 'intents', name: 'intents', component: () => import('../views/seller/IntentManage.vue') },
       { path: 'customers', name: 'customers', component: () => import('../views/seller/CustomerManage.vue') },
       { path: 'password', name: 'password', component: () => import('../views/seller/Password.vue') }
