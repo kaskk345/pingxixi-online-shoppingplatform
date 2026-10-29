@@ -2,7 +2,9 @@ package com.mall.repository;
 
 import com.mall.entity.Product;
 import com.mall.entity.enums.ProductStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -26,6 +28,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     /** 可购买且有库存的商品列表（多商品浏览） */
     List<Product> findByStatusInAndStockGreaterThanOrderByCreatedAtDesc(List<ProductStatus> statuses, Integer stock);
+
+    /** 提交意向时行锁读取商品，串行化库存扣减，防止超卖 */
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select p from Product p where p.id = :id")
+    Optional<Product> findByIdForUpdate(@Param("id") Long id);
 
     /** 搜索：名称/描述模糊匹配 + 一级/二级分类筛选，仅可购买且有库存 */
     @Query("select p from Product p where p.status in :statuses and p.stock > 0 " +

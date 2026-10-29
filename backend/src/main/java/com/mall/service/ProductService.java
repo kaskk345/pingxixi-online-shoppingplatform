@@ -25,6 +25,10 @@ import java.util.UUID;
 
 /**
  * 商品服务（升级版：多商品 + 二级分类 + 库存）。
+ *
+ * 库存策略：提交购买意向即预占 1 件库存（行锁串行化，防止超卖）；
+ * 交易失败 / 买家撤销 / 意向作废 / 商品下架时释放预占库存；
+ * 库存归零自动下架，库存恢复且为「自动下架」时自动重新上架。
  */
 @Service
 @RequiredArgsConstructor
@@ -86,6 +90,7 @@ public class ProductService {
                 .price(price).category(category).categoryL2(categoryL2)
                 .stock(s)
                 .status(s > 0 ? ProductStatus.ON_SALE : ProductStatus.OFF_SHELF)
+                .autoOffShelf(s <= 0)
                 .build();
         return productRepository.save(p);
     }
@@ -106,8 +111,12 @@ public class ProductService {
             p.setStock(stock);
             if (stock <= 0) {
                 p.setStatus(ProductStatus.OFF_SHELF);
-            } else if (p.getStatus() == ProductStatus.OFF_SHELF) {
-                p.setStatus(ProductStatus.ON_SALE);
+                p.setAutoOffShelf(true);
+            } else {
+                if (p.getStatus() == ProductStatus.OFF_SHELF) {
+                    p.setStatus(ProductStatus.ON_SALE);
+                }
+                p.setAutoOffShelf(false);
             }
         }
         return productRepository.save(p);
@@ -117,7 +126,8 @@ public class ProductService {
     @Transactional
     public Product freeze(Long id) {
         Product p = getDetail(id);
-        if (!p.getStatus().buyable()) {
+        boolean autoOff = p.getStatus() == ProductStatus.OFF_SHELF && Boolean.TRUE.equals(p.getAutoOffShelf());
+        if (!p.getStatus().buyable() && !autoOff) {
             throw new BizException("仅「在售 / 已恢复在售」商品可冻结");
         }
         p.setStatus(ProductStatus.FROZEN);
@@ -135,54 +145,104 @@ public class ProductService {
             throw new BizException("库存为 0，无法解冻");
         }
         p.setStatus(ProductStatus.ON_SALE);
+        p.setAutoOffShelf(false);
         return productRepository.save(p);
     }
 
-    /** 卖家手动下架：进入历史商品，未交易的等候意向一并作废 */
+    /** 卖家手动下架：进入历史商品，未交易的等候意向一并作废，并释放其预占库存 */
     @Transactional
     public Product offShelf(Long id) {
         Product p = getDetail(id);
         if (!p.getStatus().buyable() && p.getStatus() != ProductStatus.FROZEN) {
             throw new BizException("仅「在售 / 已恢复在售 / 已冻结」商品可手动下架");
         }
-        p.setStatus(ProductStatus.OFF_SHELF);
-        for (PurchaseIntent other : intentRepository
-                .findByProductIdAndStatusOrderByQueueTimeAsc(id, IntentStatus.WAITING)) {
+        List<PurchaseIntent> waiting = intentRepository
+                .findByProductIdAndStatusOrderByQueueTimeAsc(id, IntentStatus.WAITING);
+        for (PurchaseIntent other : waiting) {
             other.setStatus(IntentStatus.VOID);
             intentRepository.save(other);
         }
-        return productRepository.save(p);
+        // 被作废的等候意向预占的库存要释放回商品（手动下架不自动上架）
+        for (int i = 0; i < waiting.size(); i++) {
+            releaseStock(id);
+        }
+        Product fresh = getDetail(id);
+        fresh.setStatus(ProductStatus.OFF_SHELF);
+        fresh.setAutoOffShelf(false);
+        return productRepository.save(fresh);
     }
 
-    /** 交易成功：扣减库存；库存归零则下架，否则回到在售，可继续销售 */
+    /** 交易成功：本单库存在提交意向时已预占，这里只落定销量与商品状态，不再重复扣减 */
     @Transactional
     public Product markSoldByTrade(Long productId) {
         Product p = getDetail(productId);
         if (p.getStatus() != ProductStatus.FROZEN) {
             throw new BizException("仅「已冻结」商品可标记交易成功");
         }
-        int left = (p.getStock() == null ? 0 : p.getStock()) - 1;
         p.setSales((p.getSales() == null ? 0 : p.getSales()) + 1);
         p.setSoldAt(LocalDateTime.now());
+        int left = p.getStock() == null ? 0 : p.getStock();
         if (left <= 0) {
             p.setStock(0);
             p.setStatus(ProductStatus.OFF_SHELF);
+            p.setAutoOffShelf(true);
         } else {
-            p.setStock(left);
             p.setStatus(ProductStatus.ON_SALE);
+            p.setAutoOffShelf(false);
         }
         return productRepository.save(p);
     }
 
-    /** 交易失败：已冻结 -> 已恢复在售 */
+    /** 交易失败：释放本单预占的库存，商品恢复在售 */
     @Transactional
     public Product markRestoredByTrade(Long productId) {
         Product p = getDetail(productId);
         if (p.getStatus() != ProductStatus.FROZEN) {
             throw new BizException("仅「已冻结」商品可标记交易失败");
         }
+        p.setStock((p.getStock() == null ? 0 : p.getStock()) + 1);
         p.setStatus(ProductStatus.RESTORED);
+        p.setAutoOffShelf(false);
         return productRepository.save(p);
+    }
+
+    // ===== 库存预占 / 释放（提交意向即扣，防止超卖） =====
+
+    /** 预占 1 件库存（提交意向时调用）；行锁串行化，返回 false 表示库存不足或不可售 */
+    @Transactional
+    public boolean reserveStock(Long productId) {
+        Product p = productRepository.findByIdForUpdate(productId)
+                .orElseThrow(() -> new BizException("商品不存在"));
+        if (!p.getStatus().buyable()) {
+            return false;
+        }
+        int stock = p.getStock() == null ? 0 : p.getStock();
+        if (stock <= 0) {
+            return false;
+        }
+        int left = stock - 1;
+        p.setStock(left);
+        if (left <= 0) {
+            p.setStatus(ProductStatus.OFF_SHELF);
+            p.setAutoOffShelf(true);
+        }
+        productRepository.save(p);
+        return true;
+    }
+
+    /** 释放 1 件预占库存（撤销 / 交易失败 / 作废时调用）；若因此恢复库存则自动重新上架 */
+    @Transactional
+    public void releaseStock(Long productId) {
+        Product p = productRepository.findByIdForUpdate(productId).orElse(null);
+        if (p == null) {
+            return;
+        }
+        p.setStock((p.getStock() == null ? 0 : p.getStock()) + 1);
+        if (Boolean.TRUE.equals(p.getAutoOffShelf()) && p.getStatus() == ProductStatus.OFF_SHELF) {
+            p.setStatus(ProductStatus.ON_SALE);
+            p.setAutoOffShelf(false);
+        }
+        productRepository.save(p);
     }
 
     public String upload(MultipartFile file) {

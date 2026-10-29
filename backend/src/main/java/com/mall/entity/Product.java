@@ -48,6 +48,11 @@ public class Product {
     @Builder.Default
     private Integer stock = 1;
 
+    /** 是否因库存归零被系统自动下架（用于区分卖家手动下架；补货/释放时只恢复自动下架的） */
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean autoOffShelf = false;
+
     /** 累计销量 */
     @Column(nullable = false)
     @Builder.Default
@@ -87,6 +92,9 @@ public class Product {
         }
         if (stock == null) {
             stock = 1;
+        }
+        if (autoOffShelf == null) {
+            autoOffShelf = false;
         }
         if (sales == null) {
             sales = 0;
