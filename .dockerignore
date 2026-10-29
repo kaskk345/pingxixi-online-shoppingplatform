@@ -1,0 +1,9 @@
+.git
+.gitignore
+**/node_modules
+**/dist
+**/target
+uploads
+*.log
+docs
+README.md
