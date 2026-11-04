@@ -38,6 +38,8 @@ public class CategoryService {
             Map<String, Object> m = new LinkedHashMap<>();
             m.put("id", t.getId());
             m.put("name", t.getName());
+            m.put("parentId", null);
+            m.put("sort", t.getSort());
             m.put("children", children(t.getId()));
             return m;
         }).toList();
@@ -60,6 +62,25 @@ public class CategoryService {
         }
         return categoryRepository.save(Category.builder()
                 .name(name.trim()).parentId(parentId).sort(sort == null ? 0 : sort).build());
+    }
+
+    /** 编辑分类：修改名称与排序（不支持改变层级，避免破坏两级结构） */
+    @Transactional
+    public Category update(Long id, String name, Integer sort) {
+        Category c = categoryRepository.findById(id)
+                .orElseThrow(() -> new BizException("分类不存在"));
+        if (name != null && !name.isBlank()) {
+            String trimmed = name.trim();
+            if (!trimmed.equals(c.getName())
+                    && categoryRepository.existsByNameAndParentId(trimmed, c.getParentId())) {
+                throw new BizException("同级分类已存在");
+            }
+            c.setName(trimmed);
+        }
+        if (sort != null) {
+            c.setSort(sort);
+        }
+        return categoryRepository.save(c);
     }
 
     @Transactional

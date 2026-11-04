@@ -42,6 +42,12 @@ public class CategoryController {
         return Result.ok(categoryService.create(req.name(), req.parentId(), req.sort()));
     }
 
+    /** 编辑分类名称与排序（层级不可改） */
+    @PutMapping("/seller/categories/{id}")
+    public Result<Category> update(@PathVariable Long id, @Valid @RequestBody CategoryUpdateReq req) {
+        return Result.ok(categoryService.update(id, req.name(), req.sort()));
+    }
+
     @DeleteMapping("/seller/categories/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         categoryService.delete(id);
@@ -51,6 +57,12 @@ public class CategoryController {
     public record CategoryReq(
             @NotBlank(message = "分类名称不能为空") String name,
             Long parentId,
+            Integer sort
+    ) {
+    }
+
+    public record CategoryUpdateReq(
+            @NotBlank(message = "分类名称不能为空") String name,
             Integer sort
     ) {
     }

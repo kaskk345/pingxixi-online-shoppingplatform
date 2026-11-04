@@ -20,6 +20,7 @@ const routes = [
         component: () => import('../views/seller/ProductHistory.vue'),
         meta: { activeMenu: '/seller/products' }
       },
+      { path: 'categories', name: 'categories', component: () => import('../views/seller/CategoryManage.vue') },
       { path: 'intents', name: 'intents', component: () => import('../views/seller/IntentManage.vue') },
       { path: 'customers', name: 'customers', component: () => import('../views/seller/CustomerManage.vue') },
       { path: 'password', name: 'password', component: () => import('../views/seller/Password.vue') }

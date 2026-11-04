@@ -4,6 +4,7 @@
       <div class="logo">卖家后台</div>
       <el-menu :default-active="$route.meta.activeMenu || $route.path" router>
         <el-menu-item index="/seller/products">商品管理</el-menu-item>
+        <el-menu-item index="/seller/categories">分类管理</el-menu-item>
         <el-menu-item index="/seller/intents">意向管理</el-menu-item>
         <el-menu-item index="/seller/customers">客户管理</el-menu-item>
         <el-menu-item index="/seller/password">修改密码</el-menu-item>
