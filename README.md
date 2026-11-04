@@ -1,6 +1,8 @@
 # 在线购物系统（挑战升级）
 
-> 一个小众定制商品的「单品单卖」直销系统：全站在售商品**有且仅有一件**，卖出后再制作下一件；只有一个卖家；买家**无需注册**，购买时才填写用户信息；交易在**线下**完成；交易前商品**冻结**，成功则撤下、失败则恢复上线。
+> 一个小众定制商品的直销系统。**基线**为「单品单卖」：全站在售商品**有且仅有一件**，卖出后再制作下一件；只有一个卖家；买家**无需注册**，购买时才填写用户信息；交易在**线下**完成；交易前商品**冻结**，成功则撤下、失败则恢复上线。
+>
+> **当前版本已完成挑战需求 A**：A.1 支持多商品同时发布、两级分类、库存与库存归零自动下架、浏览 + 搜索、多图与富媒体描述；A.2 买家可自由注册并查看历史下单，卖家可查看注册客户及其购买历史。此外卖家可**按商品查看完整交易历史**（含终态记录，区分匿名买家与注册客户），后台提供**分类管理**页。
 
 ## 项目概览
 
@@ -109,20 +111,31 @@ npm run dev
 
 | 方法 | 路径 | 说明 |
 | --- | --- | --- |
-| GET | `/api/products/on-sale` | 买家查看当前在售商品 |
+| GET | `/api/products` | 买家浏览在售商品列表 |
+| GET | `/api/products/on-sale` | 兼容旧接口：当前第一件可购买商品 |
 | GET | `/api/products/{id}` | 商品详情 |
+| GET | `/api/products/search` | 商品搜索（关键词 / 一级 / 二级分类） |
+| GET | `/api/categories` | 两级分类树 |
 | POST | `/api/intents` | 买家提交购买意向 |
-| GET | `/api/intents/query` | 买家查询意向进度 |
+| GET | `/api/intents/track?code=xxx` | 买家凭口令码查询意向进度 |
+| POST | `/api/customer/register` | 客户注册 |
+| POST | `/api/customer/login` | 客户登录，返回 token |
+| GET | `/api/customer/orders` | 客户查看自己的历史下单 |
 | POST | `/api/seller/login` | 卖家登录（返回 token） |
 | GET | `/api/seller/products` | 卖家商品列表（含历史） |
-| POST | `/api/seller/products` | 发布商品 |
+| POST | `/api/seller/products` | 发布商品（支持多商品） |
+| PUT | `/api/seller/products/{id}` | 编辑商品 |
+| GET | `/api/seller/products/{id}/history` | 卖家按商品查看交易历史 |
 | POST | `/api/seller/products/{id}/freeze` | 冻结商品 |
-| POST | `/api/seller/products/{id}/restore` | 恢复商品上线 |
+| POST | `/api/seller/products/{id}/unfreeze` | 解冻商品，恢复在售 |
 | POST | `/api/seller/products/{id}/off-shelf` | 下架商品 |
 | GET | `/api/seller/intents` | 意向购买人列表 |
-| POST | `/api/seller/intents/{id}/accept` | 同意意向（自动冻结） |
+| POST | `/api/seller/intents/{id}/start` | 与队首开始交易（自动冻结） |
 | POST | `/api/seller/intents/{id}/succeed` | 成交登记（撤下商品） |
 | POST | `/api/seller/intents/{id}/fail` | 失败登记（恢复上线） |
+| GET | `/api/seller/customers` | 卖家查看注册客户 |
+| POST | `/api/seller/categories` | 新增商品分类 |
+| PUT | `/api/seller/categories/{id}` | 编辑商品分类（名称 / 排序） |
 | PUT | `/api/seller/password` | 修改密码 |
 | POST | `/api/seller/upload` | 上传商品图片 |
 
