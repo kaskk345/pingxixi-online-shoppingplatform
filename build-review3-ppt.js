@@ -702,7 +702,7 @@ function codeBox(slide, x, y, w, h, lines, opt = {}) {
   });
 }
 
-const out = path.join(__dirname, "docs", "media", "第三周_第三次评审_讲述版.pptx");
+const out = path.join(__dirname, "docs", "media", "第三周_第三次评审_讲述版_详细版.pptx");
 pres.writeFile({ fileName: out }).then(() => {
   console.log("PPT 已生成：" + out);
 });
