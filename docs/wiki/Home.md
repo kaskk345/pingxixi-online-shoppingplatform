@@ -24,6 +24,7 @@
 
 1. [第 1 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC1%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
 2. [第 2 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
+3. [第 3 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC3%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)（v0.3.0）
 
 ## 需求与设计文档
 
