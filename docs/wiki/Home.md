@@ -16,13 +16,20 @@
 
 ## 评审报告
 
-1. [第 1 次阶段性评审报告](./第1次阶段性评审报告)
+1. [第 1 次阶段性评审报告](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC1%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A)
+2. [第 2 次阶段性评审报告](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A)
+3. [第 3 次阶段性评审报告](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC3%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A)（卖家侧能力补齐 · 文档与实现一致）
+
+## 成果验收
+
+1. [第 1 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC1%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
+2. [第 2 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
 
 ## 需求与设计文档
 
-- [需求规格说明书](./需求规格说明书)
-- [构建部署与接入说明](./构建部署与接入说明)
-- [测试用例与运行说明](./测试用例与运行说明)
+- [需求规格说明书](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E9%9C%80%E6%B1%82%E8%A7%84%E6%A0%BC%E8%AF%B4%E6%98%8E%E4%B9%A6)
+- [构建部署与接入说明](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E6%9E%84%E5%BB%BA%E9%83%A8%E7%BD%B2%E4%B8%8E%E6%8E%A5%E5%85%A5%E8%AF%B4%E6%98%8E)
+- [测试用例与运行说明](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E6%B5%8B%E8%AF%95%E7%94%A8%E4%BE%8B%E4%B8%8E%E8%BF%90%E8%A1%8C%E8%AF%B4%E6%98%8E)
 
 ## 相关文档
 
