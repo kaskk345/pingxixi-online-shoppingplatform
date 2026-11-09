@@ -9,7 +9,7 @@
     </div>
 
     <el-table :data="orders" border>
-      <el-table-column prop="orderNo" label="订单号" width="190" />
+      <el-table-column prop="orderNo" label="订单号" width="210" />
       <el-table-column label="客户" width="150">
         <template #default="{ row }">
           <div>{{ row.buyerName }}</div>

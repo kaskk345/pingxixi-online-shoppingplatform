@@ -235,4 +235,6 @@ chore: 调整 .gitignore
 ## 相关文档
 
 - [产品订单（Product Backlog）](docs/产品订单_ProductBacklog.md)
+- [第 4 次阶段性评审报告](docs/wiki/第4次阶段性评审报告.md)（挑战 B 首批：订单闭环与商品预选）
+- [第 4 次评审讲述版 PPT](docs/media/第四周_第四次评审_讲述版.pptx) ｜ [PDF 版](docs/media/第四周_第四次评审_讲述版.pdf)
 - 图 1 功能结构图、图 2 用例图、图 3 业务流程图（见 `docs/`）
