@@ -8,6 +8,8 @@ const routes = [
   { path: '/customer/login', name: 'customerLogin', component: () => import('../views/CustomerLogin.vue') },
   { path: '/customer/register', name: 'customerRegister', component: () => import('../views/CustomerRegister.vue') },
   { path: '/customer/orders', name: 'customerOrders', component: () => import('../views/CustomerOrders.vue') },
+  { path: '/cart', name: 'cart', component: () => import('../views/Cart.vue') },
+  { path: '/favorites', name: 'favorites', component: () => import('../views/Favorites.vue') },
   {
     path: '/seller',
     component: () => import('../views/SellerLayout.vue'),
@@ -21,6 +23,7 @@ const routes = [
         meta: { activeMenu: '/seller/products' }
       },
       { path: 'categories', name: 'categories', component: () => import('../views/seller/CategoryManage.vue') },
+      { path: 'orders', name: 'orders', component: () => import('../views/seller/OrderManage.vue') },
       { path: 'intents', name: 'intents', component: () => import('../views/seller/IntentManage.vue') },
       { path: 'customers', name: 'customers', component: () => import('../views/seller/CustomerManage.vue') },
       { path: 'password', name: 'password', component: () => import('../views/seller/Password.vue') }
@@ -37,7 +40,7 @@ router.beforeEach((to) => {
   if (to.path.startsWith('/seller')) {
     if (!localStorage.getItem('token')) return '/login'
   }
-  if (to.path.startsWith('/customer/orders')) {
+  if (to.path.startsWith('/customer/orders') || to.path === '/cart' || to.path === '/favorites') {
     if (!localStorage.getItem('customerToken')) return '/customer/login'
   }
   return true

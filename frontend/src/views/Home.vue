@@ -7,7 +7,12 @@
       </div>
       <div class="actions">
         <el-button link @click="$router.push('/track')">查口令</el-button>
-        <el-button v-if="isCustomer" link @click="$router.push('/customer/orders')">我的订单</el-button>
+        <template v-if="isCustomer">
+          <el-button link @click="$router.push('/cart')">购物车<el-badge v-if="cartCount" :value="cartCount" class="cart-badge" /></el-button>
+          <el-button link @click="$router.push('/favorites')">我的收藏</el-button>
+          <el-button link @click="$router.push('/customer/orders')">我的订单</el-button>
+          <el-button link @click="logout">退出</el-button>
+        </template>
         <el-button v-else link @click="$router.push('/customer/login')">客户登录</el-button>
         <el-button link type="primary" @click="$router.push('/login')">商家后台</el-button>
       </div>
@@ -41,6 +46,10 @@
               <span class="stock">库存 {{ p.stock }}</span>
             </div>
             <div class="price">¥ {{ p.price }}</div>
+            <div class="quick">
+              <el-button size="small" type="danger" plain @click.stop="addCart(p)">加入购物车</el-button>
+              <el-button size="small" @click.stop="addFavorite(p)">收藏</el-button>
+            </div>
           </div>
         </div>
       </div>
@@ -56,8 +65,11 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { ElMessage } from 'element-plus'
 import http from '../api'
 
+const router = useRouter()
 const products = ref([])
 const tree = ref([])
 const children = ref([])
@@ -65,6 +77,7 @@ const keyword = ref('')
 const c1 = ref('')
 const c2 = ref('')
 const isCustomer = ref(!!localStorage.getItem('customerToken'))
+const cartCount = ref(0)
 
 function firstImage(p) {
   if (p.images) {
@@ -92,9 +105,47 @@ async function load() {
   products.value = await http.get('/products/search', { params })
 }
 
+function requireLogin() {
+  if (localStorage.getItem('customerToken')) return true
+  ElMessage.warning('请先登录客户账号')
+  router.push('/customer/login')
+  return false
+}
+
+async function addCart(p) {
+  if (!requireLogin()) return
+  try {
+    await http.post('/customer/cart', { productId: p.id, quantity: 1 })
+    ElMessage.success('已加入购物车')
+    cartCount.value = await http.get('/customer/cart/count')
+  } catch (e) {
+    /* 拦截器已提示错误 */
+  }
+}
+
+async function addFavorite(p) {
+  if (!requireLogin()) return
+  try {
+    await http.post('/customer/favorites', { productId: p.id })
+    ElMessage.success('收藏成功')
+  } catch (e) {
+    /* 拦截器已提示错误 */
+  }
+}
+
+function logout() {
+  localStorage.removeItem('customerToken')
+  isCustomer.value = false
+  cartCount.value = 0
+  ElMessage.success('已退出')
+}
+
 onMounted(async () => {
   await loadTree()
   await load()
+  if (isCustomer.value) {
+    cartCount.value = await http.get('/customer/cart/count')
+  }
 })
 </script>
 
@@ -117,6 +168,10 @@ onMounted(async () => {
 .name { font-size: 15px; color: #2b2622; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .meta { display: flex; justify-content: space-between; color: #8a8178; font-size: 12px; margin: 8px 0; }
 .price { color: #b85042; font-size: 20px; font-weight: 700; }
+.quick { display: flex; gap: 8px; margin-top: 10px; }
+.quick .el-button { flex: 1; }
+.cart-badge { margin-left: 4px; vertical-align: top; }
+.cart-badge :deep(.el-badge__content) { transform: translateY(-4px); }
 .empty { background: #fff; border-radius: 14px; padding: 70px 20px; text-align: center; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05); }
 .empty-icon { font-size: 48px; }
 .empty h2 { margin: 14px 0 10px; color: #2b2622; }

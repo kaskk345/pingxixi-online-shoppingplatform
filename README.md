@@ -20,6 +20,24 @@
 | 线下交易 | 无在线支付流水，交易结果依赖卖家登记，需可追溯 |
 | 交易前冻结商品 | 冻结/恢复的并发控制与超时自动释放 |
 
+## 本轮升级（B.1 订单 / B.2 商品预选）
+
+### B.1 订单升级
+
+- 订单状态机：`客户下单 → 商家确认 → 备货完成 → 开始发货 → 交易完成`，另有「已取消」终态；
+- 在「开始发货」之前，客户可自行取消订单，取消后库存自动回滚；
+- 在「交易完成」之前，商家可取消订单（需填写/可不填取消原因），取消后库存自动回滚；
+- 下单即扣减库存并保存价格快照，交易完成时累计销量，全流程记录各节点时间，可追溯。
+
+### B.2 商品预选升级
+
+- 收藏：客户可收藏/取消收藏商品，在「我的收藏」中查看并一键加入购物车；
+- 购物车：同一商品重复加入自动累加数量，数量受库存约束；
+- 多件下单：勾选购物车中多件商品合并生成一个订单（订单明细逐条快照）；
+- 批量转收藏：勾选购物车中多件商品可一次性转为收藏并从购物车移除。
+
+> 预选相关能力需要客户登录（接口位于 `/api/customer/**`，由客户 token 鉴权）。
+
 ## 技术栈
 
 | 层 | 技术 | 版本 |
@@ -100,6 +118,7 @@ npm run dev
 | 角色 | 账号 | 密码 |
 | --- | --- | --- |
 | 卖家（店主） | `admin` | `admin123` |
+| 客户（演示） | `buyer1` | `123456` |
 
 ### 切换数据库（可选，MySQL 8.x）
 
@@ -138,6 +157,39 @@ npm run dev
 | PUT | `/api/seller/categories/{id}` | 编辑商品分类（名称 / 排序） |
 | PUT | `/api/seller/password` | 修改密码 |
 | POST | `/api/seller/upload` | 上传商品图片 |
+
+### 订单（B.1）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/customer/orders` | 客户订单列表（含明细与可取消标记） |
+| GET | `/api/customer/orders/{id}` | 客户订单详情 |
+| POST | `/api/customer/orders/{id}/cancel` | 客户取消订单（开始发货前） |
+| GET | `/api/seller/orders` | 卖家订单列表（按状态筛选、分页） |
+| GET | `/api/seller/orders/{id}` | 卖家订单详情 |
+| POST | `/api/seller/orders/{id}/confirm` | 商家确认 |
+| POST | `/api/seller/orders/{id}/prepare` | 备货完成 |
+| POST | `/api/seller/orders/{id}/ship` | 开始发货 |
+| POST | `/api/seller/orders/{id}/complete` | 交易完成 |
+| POST | `/api/seller/orders/{id}/cancel` | 商家取消订单（交易完成前） |
+
+### 购物车与收藏（B.2）
+
+| 方法 | 路径 | 说明 |
+| --- | --- | --- |
+| GET | `/api/customer/cart` | 购物车列表 |
+| GET | `/api/customer/cart/count` | 购物车条目数 |
+| POST | `/api/customer/cart` | 加入购物车（同一商品累加） |
+| PUT | `/api/customer/cart/{id}` | 修改数量 |
+| DELETE | `/api/customer/cart/{id}` | 删除条目 |
+| DELETE | `/api/customer/cart` | 清空购物车 |
+| POST | `/api/customer/cart/checkout` | 勾选多件商品下单 |
+| POST | `/api/customer/cart/to-favorites` | 勾选多件商品转为收藏 |
+| GET | `/api/customer/favorites` | 收藏列表 |
+| GET | `/api/customer/favorites/count` | 收藏数量 |
+| GET | `/api/customer/favorites/check?productId=` | 是否已收藏 |
+| POST | `/api/customer/favorites` | 收藏商品 |
+| DELETE | `/api/customer/favorites/{productId}` | 取消收藏 |
 
 ## Git 协作规范
 

@@ -32,9 +32,14 @@
     </div>
 
     <div class="bottom">
-      <el-button size="large" type="danger" :disabled="!canBuy" @click="openBuy">
-        {{ canBuy ? '提交购买意向' : '暂时无法购买' }}
+      <el-button size="large" :type="favorited ? 'warning' : 'default'" plain @click="toggleFavorite">
+        {{ favorited ? '已收藏' : '收藏' }}
       </el-button>
+      <el-button size="large" :disabled="!canBuy" @click="addCart">加入购物车</el-button>
+      <el-button size="large" type="danger" :disabled="!canBuy" @click="buyNow">
+        {{ canBuy ? '立即购买' : '暂时无法购买' }}
+      </el-button>
+      <el-button size="large" link type="info" :disabled="!canBuy" @click="openBuy">意向排队</el-button>
     </div>
 
     <el-dialog v-model="visible" title="提交购买意向" width="440px">
@@ -59,14 +64,16 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import http from '../api'
 import { productStatus, buyable } from '../utils/status'
 
 const route = useRoute()
+const router = useRouter()
 const p = ref(null)
 const visible = ref(false)
+const favorited = ref(false)
 const form = ref({ buyerName: '', buyerPhone: '', buyerNote: '' })
 
 const images = computed(() => {
@@ -82,6 +89,57 @@ const canBuy = computed(() => p.value && buyable(p.value.status) && p.value.stoc
 
 async function load() {
   p.value = await http.get('/products/' + route.params.id)
+  if (localStorage.getItem('customerToken')) {
+    try {
+      favorited.value = await http.get('/customer/favorites/check', { params: { productId: p.value.id } })
+    } catch (e) {
+      /* 未登录不展示收藏状态 */
+    }
+  }
+}
+
+function requireLogin() {
+  if (localStorage.getItem('customerToken')) return true
+  ElMessage.warning('请先登录客户账号')
+  router.push('/customer/login')
+  return false
+}
+
+async function toggleFavorite() {
+  if (!requireLogin()) return
+  try {
+    if (favorited.value) {
+      await http.delete('/customer/favorites/' + p.value.id)
+      favorited.value = false
+      ElMessage.success('已取消收藏')
+    } else {
+      await http.post('/customer/favorites', { productId: p.value.id })
+      favorited.value = true
+      ElMessage.success('收藏成功')
+    }
+  } catch (e) {
+    /* 拦截器已提示错误 */
+  }
+}
+
+async function addCart() {
+  if (!requireLogin()) return
+  try {
+    await http.post('/customer/cart', { productId: p.value.id, quantity: 1 })
+    ElMessage.success('已加入购物车')
+  } catch (e) {
+    /* 拦截器已提示错误 */
+  }
+}
+
+async function buyNow() {
+  if (!requireLogin()) return
+  try {
+    await http.post('/customer/cart', { productId: p.value.id, quantity: 1 })
+    router.push('/cart')
+  } catch (e) {
+    /* 拦截器已提示错误 */
+  }
 }
 
 function openBuy() {
@@ -130,5 +188,5 @@ onMounted(load)
 .meta { display: flex; gap: 12px; margin-top: 12px; font-size: 13px; color: #666; align-items: center; }
 .tag { background: #fdecec; color: #b85042; padding: 2px 8px; border-radius: 4px; }
 .note { margin-top: 12px; font-size: 12px; color: #a09890; line-height: 1.7; }
-.bottom { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; display: flex; justify-content: center; padding: 12px 16px; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06); }
+.bottom { position: fixed; left: 0; right: 0; bottom: 0; background: #fff; display: flex; justify-content: center; gap: 8px; padding: 12px 16px; box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.06); }
 </style>

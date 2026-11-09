@@ -1,17 +1,14 @@
 package com.mall.controller;
 
 import com.mall.common.Result;
-import com.mall.dto.IntentView;
 import com.mall.entity.Customer;
 import com.mall.service.CustomerService;
-import com.mall.service.IntentService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -24,7 +21,6 @@ import java.util.Map;
 public class CustomerController {
 
     private final CustomerService customerService;
-    private final IntentService intentService;
 
     @PostMapping("/register")
     public Result<Map<String, Object>> register(@Valid @RequestBody RegisterReq req) {
@@ -41,12 +37,6 @@ public class CustomerController {
     @GetMapping("/me")
     public Result<Customer> me(@RequestAttribute("customerId") Long customerId) {
         return Result.ok(customerService.get(customerId));
-    }
-
-    /** 客户历史下单记录 */
-    @GetMapping("/orders")
-    public Result<List<IntentView>> orders(@RequestAttribute("customerId") Long customerId) {
-        return Result.ok(intentService.listByCustomer(customerId));
     }
 
     public record RegisterReq(
