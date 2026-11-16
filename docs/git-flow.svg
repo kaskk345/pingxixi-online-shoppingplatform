@@ -1,0 +1,127 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 780" width="1240" height="780" font-family="Microsoft YaHei, PingFang SC, sans-serif">
+  <defs>
+    <linearGradient id="hdr" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#1e3a8a"/>
+      <stop offset="1" stop-color="#6d28d9"/>
+    </linearGradient>
+    <marker id="aGray" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#64748b"/>
+    </marker>
+    <marker id="aBlue" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/>
+    </marker>
+    <marker id="aPurple" markerWidth="9" markerHeight="9" refX="8" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7c3aed"/>
+    </marker>
+  </defs>
+
+  <rect width="1240" height="780" fill="#f8fafc"/>
+  <rect width="1240" height="92" fill="url(#hdr)"/>
+  <text x="36" y="44" font-size="26" font-weight="700" fill="#ffffff">在线购物系统 · Git Flow 分支流程图</text>
+  <text x="36" y="72" font-size="14" fill="#dbeafe">master / develop / main + 5 位成员 topic 分支　·　共同起点 A = 9a90786</text>
+
+  <text x="250" y="126" font-size="15" font-weight="700" fill="#0f172a">① 现在：同一起点</text>
+  <text x="490" y="126" font-size="15" font-weight="700" fill="#0f172a">② 各人提交后：开始分叉</text>
+  <text x="900" y="126" font-size="15" font-weight="700" fill="#0f172a">③ 汇总发布</text>
+  <line x1="440" y1="140" x2="440" y2="620" stroke="#cbd5e1" stroke-dasharray="5 6"/>
+  <line x1="840" y1="140" x2="840" y2="620" stroke="#cbd5e1" stroke-dasharray="5 6"/>
+
+  <line x1="290" y1="190" x2="290" y2="580" stroke="#94a3b8" stroke-width="2" stroke-dasharray="4 5"/>
+  <text x="246" y="168" font-size="12" fill="#475569">A · 9a90786</text>
+
+  <g font-size="13" font-weight="700">
+    <text x="36" y="186" fill="#7c3aed">master</text>
+    <text x="36" y="244" fill="#2563eb">develop</text>
+    <text x="36" y="302" fill="#64748b">main</text>
+    <text x="36" y="368" fill="#059669">topic/fe-dingyuecheng</text>
+    <text x="36" y="420" fill="#059669">topic/be-fanghaoyu</text>
+    <text x="36" y="472" fill="#059669">topic/be-wangzekai</text>
+    <text x="36" y="524" fill="#059669">topic/qa-daiyingjie</text>
+    <text x="36" y="576" fill="#059669">topic/lead-heyi</text>
+  </g>
+  <g font-size="11" fill="#64748b">
+    <text x="36" y="202">发布主线</text>
+    <text x="36" y="260">开发主线</text>
+    <text x="36" y="318">仓库默认分支</text>
+    <text x="36" y="384">前端 · 丁月诚 → frontend/</text>
+    <text x="36" y="436">后端 · 方浩昱 → backend/</text>
+    <text x="36" y="488">后端 · 王则凯 → backend/</text>
+    <text x="36" y="540">测试 · 戴英杰 → scripts/</text>
+    <text x="36" y="592">组长 · 何易 → docs/ 与合并</text>
+  </g>
+
+  <g stroke-width="3" fill="none" opacity="0.55">
+    <line x1="290" y1="190" x2="1190" y2="190" stroke="#7c3aed"/>
+    <line x1="290" y1="248" x2="1190" y2="248" stroke="#2563eb"/>
+    <line x1="290" y1="306" x2="1190" y2="306" stroke="#64748b"/>
+  </g>
+
+  <g stroke="#059669" stroke-width="3" fill="none">
+    <line x1="290" y1="372" x2="440" y2="372"/>
+    <line x1="290" y1="424" x2="440" y2="424"/>
+    <line x1="290" y1="476" x2="440" y2="476"/>
+    <line x1="290" y1="528" x2="440" y2="528"/>
+    <line x1="290" y1="580" x2="440" y2="580"/>
+  </g>
+  <g stroke="#059669" stroke-width="2.5" fill="none" stroke-dasharray="6 5" opacity="0.75">
+    <line x1="440" y1="372" x2="830" y2="372"/>
+    <line x1="440" y1="424" x2="830" y2="424"/>
+    <line x1="440" y1="476" x2="830" y2="476"/>
+    <line x1="440" y1="528" x2="830" y2="528"/>
+    <line x1="440" y1="580" x2="830" y2="580"/>
+  </g>
+
+  <g fill="#ffffff" stroke="#059669" stroke-width="3">
+    <circle cx="290" cy="190" r="5"/>
+    <circle cx="290" cy="248" r="5"/>
+    <circle cx="290" cy="306" r="5"/>
+    <circle cx="290" cy="372" r="5"/>
+    <circle cx="290" cy="424" r="5"/>
+    <circle cx="290" cy="476" r="5"/>
+    <circle cx="290" cy="528" r="5"/>
+    <circle cx="290" cy="580" r="5"/>
+  </g>
+  <g fill="#059669">
+    <circle cx="640" cy="372" r="7"/>
+    <circle cx="640" cy="424" r="7"/>
+    <circle cx="640" cy="476" r="7"/>
+    <circle cx="640" cy="528" r="7"/>
+    <circle cx="640" cy="580" r="7"/>
+  </g>
+  <g font-size="11" fill="#047857">
+    <text x="652" y="360">B 前端改动</text>
+    <text x="652" y="412">C 后端改动</text>
+    <text x="652" y="464">D 后端改动</text>
+    <text x="652" y="516">E 测试改动</text>
+    <text x="652" y="568">F 组长改动</text>
+  </g>
+
+  <circle cx="1000" cy="248" r="8" fill="#2563eb"/>
+  <text x="932" y="232" font-size="11" fill="#1d4ed8">合并 5 人改动</text>
+  <circle cx="1130" cy="190" r="8" fill="#7c3aed"/>
+  <text x="1080" y="174" font-size="11" fill="#6d28d9">v0.4 发布</text>
+  <line x1="1004" y1="242" x2="1126" y2="196" stroke="#7c3aed" stroke-width="2" marker-end="url(#aPurple)"/>
+
+  <line x1="830" y1="476" x2="864" y2="450" stroke="#64748b" stroke-width="2" marker-end="url(#aGray)"/>
+  <rect x="870" y="350" width="320" height="238" rx="16" fill="#ffffff" stroke="#c7d2fe" stroke-width="2"/>
+  <text x="892" y="382" font-size="15" font-weight="700" fill="#1e3a8a">配置主管：何易</text>
+  <g font-size="12.5" fill="#334155">
+    <text x="892" y="418">① 5 个 topic 分支 → Pull Request</text>
+    <text x="912" y="442">→ 合并进 develop</text>
+    <text x="892" y="478">② develop 测试通过 → 合并进 master</text>
+    <text x="892" y="514">③ master = 稳定发布版</text>
+    <text x="892" y="550" fill="#64748b">两人改同一文件同一处时才需解决冲突</text>
+  </g>
+
+  <rect x="24" y="646" width="1192" height="110" rx="14" fill="#ffffff" stroke="#e2e8f0"/>
+  <g font-size="12.5" fill="#334155">
+    <text x="44" y="676" font-weight="700" fill="#0f172a">现在停在第 ① 段：8 个分支都指向 A，还没有人在自己分支提交 → 5 个成员分支内容完全一样（171 个文件）。</text>
+    <text x="44" y="702">分支只是给同一提交贴名字，不是复制 5 份代码；改代码只改变当前所在分支，切换分支才会看到不同内容。</text>
+    <text x="44" y="728">分工：丁月诚 frontend/ · 方浩昱、王则凯 backend/ · 戴英杰 scripts/ · 何易 docs/ 与合并。</text>
+  </g>
+  <g font-size="11.5">
+    <circle cx="1000" cy="747" r="5" fill="#7c3aed"/><text x="1010" y="751" fill="#475569">master</text>
+    <circle cx="1070" cy="747" r="5" fill="#2563eb"/><text x="1080" y="751" fill="#475569">develop</text>
+    <circle cx="1150" cy="747" r="5" fill="#059669"/><text x="1160" y="751" fill="#475569">topic</text>
+  </g>
+</svg>
