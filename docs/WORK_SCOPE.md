@@ -1,37 +1,32 @@
-# 分工说明 · 后端收藏与购物车（王则凯）
+# 分工说明 · 测试（戴英杰）
 
-- 分支：`topic/be-wangzekai`
-- 角色：后端
-- 负责模块：B.2 收藏、购物车、多件下单、批量转收藏
-- 负责目录：`backend/src/main/java/com/mall/`
+- 分支：`topic/qa-daiyingjie`
+- 角色：测试
+- 负责目录：`scripts/`、`qa_bounds.py`、`docs/端到端验证记录.md`
+- 对应需求：需求 B 的 B.1 订单状态与 B.2 收藏/购物车的功能验证
 
-## 负责文件（11 个）
+## 本次更新包中的文件（0 个）
 
-- `backend/src/main/java/com/mall/entity/Favorite.java`
-- `backend/src/main/java/com/mall/entity/CartItem.java`
-- `backend/src/main/java/com/mall/dto/FavoriteView.java`
-- `backend/src/main/java/com/mall/dto/CartItemView.java`
-- `backend/src/main/java/com/mall/repository/FavoriteRepository.java`
-- `backend/src/main/java/com/mall/repository/CartItemRepository.java`
-- `backend/src/main/java/com/mall/service/FavoriteService.java`
-- `backend/src/main/java/com/mall/service/CartService.java`
-- `backend/src/main/java/com/mall/controller/FavoriteController.java`
-- `backend/src/main/java/com/mall/controller/CartController.java`
-- `backend/src/main/java/com/mall/controller/CustomerController.java`（−10 行，客户接口调整）
+需求 B 更新包只包含业务代码与文档，没有测试文件，因此本分支暂无对应源码文件。
 
-## 对应需求
+## 待补充的验证用例
 
-- B.2-1 商品收藏
-- B.2-2 购物车
-- B.2-3 购物车多件下单（`OrderService.checkoutFromCart`）
-- B.2-4 购物车批量转收藏（`/cart/to-favorites`）
+| 需求 | 验证要点 |
+| --- | --- |
+| B.1-1 订单五状态 | 合法流转成功、非法跳转被拒绝 |
+| B.1-2 客户取消 | 取消后商品冻结恢复上线 |
+| B.1-3 商家取消 | 商家侧取消后状态与商品状态正确 |
+| B.2-1 收藏 | 收藏、取消收藏、列表正确 |
+| B.2-2 购物车 | 加购、改数量、删除、金额合计 |
+| B.2-3 多件下单 | 一次生成多条订单项，库存与冻结正确 |
+| B.2-4 批量转收藏 | 购物车项转为收藏且购物车清空 |
 
 ## 工作边界
 
-- 只修改上述收藏/购物车相关文件
-- 订单模块由方浩昱负责，前端由丁月诚负责
-- 测试用例由戴英杰负责，合并发布由何易负责
+- 基于现有 `scripts/verify-api.ps1`（27 项断言）扩展，或新增独立验证脚本
+- 不直接修改 `backend/`、`frontend/` 业务代码；发现问题提交给对应负责人
+- 合并发布由何易负责
 
 ## 说明
 
-上述文件已随提交 `4d6085b` 合入 `main`，本分支用于后续收藏/购物车改动与提交记录留痕。
+本分支用于测试脚本、验证记录与缺陷跟踪的提交留痕。
