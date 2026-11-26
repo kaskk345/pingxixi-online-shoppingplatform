@@ -8,6 +8,10 @@ const routes = [
   { path: '/customer/login', name: 'customerLogin', component: () => import('../views/CustomerLogin.vue') },
   { path: '/customer/register', name: 'customerRegister', component: () => import('../views/CustomerRegister.vue') },
   { path: '/customer/orders', name: 'customerOrders', component: () => import('../views/CustomerOrders.vue') },
+  { path: '/pay/:paymentNo', name: 'pay', component: () => import('../views/Pay.vue') },
+  { path: '/customer/addresses', name: 'customerAddresses', component: () => import('../views/CustomerAddress.vue') },
+  { path: '/customer/after-sales', name: 'customerAfterSales', component: () => import('../views/CustomerAfterSale.vue') },
+  { path: '/logistics/:orderId', name: 'logistics', component: () => import('../views/Logistics.vue') },
   { path: '/cart', name: 'cart', component: () => import('../views/Cart.vue') },
   { path: '/favorites', name: 'favorites', component: () => import('../views/Favorites.vue') },
   {
@@ -24,6 +28,7 @@ const routes = [
       },
       { path: 'categories', name: 'categories', component: () => import('../views/seller/CategoryManage.vue') },
       { path: 'orders', name: 'orders', component: () => import('../views/seller/OrderManage.vue') },
+      { path: 'after-sales', name: 'afterSales', component: () => import('../views/seller/AfterSaleManage.vue') },
       { path: 'intents', name: 'intents', component: () => import('../views/seller/IntentManage.vue') },
       { path: 'customers', name: 'customers', component: () => import('../views/seller/CustomerManage.vue') },
       { path: 'password', name: 'password', component: () => import('../views/seller/Password.vue') }
@@ -40,7 +45,15 @@ router.beforeEach((to) => {
   if (to.path.startsWith('/seller')) {
     if (!localStorage.getItem('token')) return '/login'
   }
-  if (to.path.startsWith('/customer/orders') || to.path === '/cart' || to.path === '/favorites') {
+  if (
+    to.path.startsWith('/customer/orders') ||
+    to.path.startsWith('/customer/addresses') ||
+    to.path.startsWith('/customer/after-sales') ||
+    to.path.startsWith('/logistics/') ||
+    to.path.startsWith('/pay/') ||
+    to.path === '/cart' ||
+    to.path === '/favorites'
+  ) {
     if (!localStorage.getItem('customerToken')) return '/customer/login'
   }
   return true

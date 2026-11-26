@@ -1,10 +1,12 @@
 package com.mall.config;
 
+import com.mall.entity.Address;
 import com.mall.entity.Category;
 import com.mall.entity.Customer;
 import com.mall.entity.Product;
 import com.mall.entity.Seller;
 import com.mall.entity.enums.ProductStatus;
+import com.mall.repository.AddressRepository;
 import com.mall.repository.CategoryRepository;
 import com.mall.repository.CustomerRepository;
 import com.mall.repository.ProductRepository;
@@ -27,6 +29,7 @@ public class DataInitializer implements CommandLineRunner {
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
     private final CustomerRepository customerRepository;
+    private final AddressRepository addressRepository;
 
     @Override
     public void run(String... args) {
@@ -73,6 +76,20 @@ public class DataInitializer implements CommandLineRunner {
                     .defaultAddress("华东师范大学")
                     .build());
         }
+
+        // 挑战 C.2：给演示客户准备一条默认收货地址
+        customerRepository.findByUsername("buyer1").ifPresent(c -> {
+            if (addressRepository.countByCustomerId(c.getId()) == 0) {
+                addressRepository.save(Address.builder()
+                        .customerId(c.getId())
+                        .receiverName(c.getUsername())
+                        .receiverPhone(c.getPhone())
+                        .region("上海市普陀区")
+                        .detail("中山北路3663号 华东师范大学")
+                        .isDefault(true)
+                        .build());
+            }
+        });
     }
 
     private void initCategories() {

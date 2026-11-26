@@ -39,9 +39,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final PurchaseIntentRepository intentRepository;
-
-    @Value("${mall.upload-dir:uploads}")
-    private String uploadDir;
+    private final FileStorageService fileStorageService;
 
     // ===== 查询 =====
 
@@ -246,22 +244,6 @@ public class ProductService {
     }
 
     public String upload(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new BizException("请选择文件");
-        }
-        String original = file.getOriginalFilename();
-        String ext = "";
-        if (original != null && original.contains(".")) {
-            ext = original.substring(original.lastIndexOf('.'));
-        }
-        String filename = UUID.randomUUID().toString().replace("-", "") + ext;
-        try {
-            Path dir = Paths.get(uploadDir).toAbsolutePath();
-            Files.createDirectories(dir);
-            file.transferTo(dir.resolve(filename).toFile());
-        } catch (IOException e) {
-            throw new BizException("文件上传失败");
-        }
-        return "/uploads/" + filename;
+        return fileStorageService.upload(file);
     }
 }

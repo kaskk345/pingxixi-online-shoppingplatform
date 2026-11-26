@@ -3,10 +3,12 @@ package com.mall.service;
 import com.mall.common.BizException;
 import com.mall.dto.OrderItemView;
 import com.mall.dto.OrderView;
+import com.mall.dto.ShippingInfo;
 import com.mall.entity.CartItem;
 import com.mall.entity.Order;
 import com.mall.entity.OrderItem;
 import com.mall.entity.Product;
+import com.mall.entity.enums.ExpressCompany;
 import com.mall.entity.enums.OrderStatus;
 import com.mall.entity.enums.ProductStatus;
 import com.mall.repository.CartItemRepository;
@@ -45,13 +47,15 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final PaymentService paymentService;
+    private final LogisticsService logisticsService;
 
     // ===== 买家端 =====
 
     /** 购物车勾选商品下单（多件商品一个订单） */
     @Transactional
     public OrderView checkoutFromCart(Long customerId, List<Long> itemIds, String buyerName, String buyerPhone,
-                                      String address, String remark) {
+                                      String address, String remark, Long addressId) {
         if (itemIds == null || itemIds.isEmpty()) {
             throw new BizException("请选择要下单的商品");
         }
@@ -103,6 +107,7 @@ public class OrderService {
                 .buyerName(buyerName.trim())
                 .buyerPhone(buyerPhone.trim())
                 .address(address)
+                .addressId(addressId)
                 .remark(remark)
                 .totalAmount(total)
                 .itemCount(itemCount)
@@ -163,11 +168,14 @@ public class OrderService {
         return toView(order, orderItemRepository.findByOrderIdOrderByIdAsc(orderId));
     }
 
-    /** 商家确认订单：客户下单 -> 商家确认 */
+    /** 商家确认订单：已支付 -> 商家确认（挑战 C.1：必须先完成线上支付） */
     @Transactional
     public OrderView confirm(Long orderId) {
         Order order = getOrder(orderId);
-        requireStatus(order, OrderStatus.PLACED, "仅「客户下单」的订单可确认");
+        if (order.getStatus() == OrderStatus.PLACED || order.getStatus() == OrderStatus.PENDING_PAY) {
+            throw new BizException("买家尚未完成支付，无法确认订单");
+        }
+        requireStatus(order, OrderStatus.PAID, "仅「已支付」的订单可确认");
         order.setStatus(OrderStatus.CONFIRMED);
         order.setConfirmedAt(LocalDateTime.now());
         orderRepository.save(order);
@@ -185,14 +193,26 @@ public class OrderService {
         return toView(order, orderItemRepository.findByOrderIdOrderByIdAsc(orderId));
     }
 
-    /** 开始发货：备货完成 -> 开始发货（此后客户不可取消） */
+    /** 开始发货：备货完成 -> 开始发货（此后客户不可取消），同时绑定快递运单 */
     @Transactional
-    public OrderView ship(Long orderId) {
+    public OrderView ship(Long orderId, ExpressCompany expressCompany, String trackingNo) {
         Order order = getOrder(orderId);
         requireStatus(order, OrderStatus.PREPARED, "仅「备货完成」的订单可开始发货");
         order.setStatus(OrderStatus.SHIPPED);
         order.setShippedAt(LocalDateTime.now());
+        logisticsService.ship(order, expressCompany, trackingNo);
         orderRepository.save(order);
+        return toView(order, orderItemRepository.findByOrderIdOrderByIdAsc(orderId));
+    }
+
+    /** 更新物流：已揽收 -> 运输中 -> 派送中 -> 已签收 */
+    @Transactional
+    public OrderView advanceLogistics(Long orderId) {
+        Order order = getOrder(orderId);
+        if (order.getStatus() != OrderStatus.SHIPPED) {
+            throw new BizException("订单未处于「开始发货」，无法更新物流");
+        }
+        logisticsService.advance(order);
         return toView(order, orderItemRepository.findByOrderIdOrderByIdAsc(orderId));
     }
 
@@ -241,13 +261,14 @@ public class OrderService {
         }
     }
 
-    /** 取消订单：置为已取消并回滚库存 */
+    /** 取消订单：置为已取消并回滚库存；已支付的支付单同步退款 */
     private void doCancel(Order order, String by, String reason) {
         order.setStatus(OrderStatus.CANCELED);
         order.setCanceledBy(by);
         order.setCancelReason(reason);
         order.setCanceledAt(LocalDateTime.now());
         orderRepository.save(order);
+        paymentService.refundByCancel(order.getId());
         for (OrderItem item : orderItemRepository.findByOrderIdOrderByIdAsc(order.getId())) {
             productRepository.findById(item.getProductId()).ifPresent(p -> {
                 int stock = (p.getStock() == null ? 0 : p.getStock()) + item.getQuantity();
@@ -316,11 +337,21 @@ public class OrderService {
                 o.getCancelReason(),
                 views,
                 o.getCreatedAt(),
+                o.getPaidAt(),
+                o.getPayChannel(),
                 o.getConfirmedAt(),
                 o.getPreparedAt(),
                 o.getShippedAt(),
                 o.getCompletedAt(),
                 o.getCanceledAt(),
+                o.getExpressCompany() == null ? null : new ShippingInfo(
+                        o.getExpressCompany().name(),
+                        o.getExpressCompany().getLabel(),
+                        o.getTrackingNo(),
+                        o.getLogisticsStatus() == null ? null : o.getLogisticsStatus().name(),
+                        o.getLogisticsStatus() == null ? null : o.getLogisticsStatus().getLabel(),
+                        o.getSignedAt()),
+                o.getStatus().payable(),
                 o.getStatus().cancellableByCustomer(),
                 o.getStatus().cancellableBySeller()
         );

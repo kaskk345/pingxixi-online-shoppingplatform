@@ -84,16 +84,29 @@
       </div>
     </div>
 
-    <el-dialog v-model="checkoutVisible" title="确认订单" width="480px">
+    <el-dialog v-model="checkoutVisible" title="确认订单" width="520px">
       <el-form :model="form" label-width="80px">
-        <el-form-item label="收货人">
-          <el-input v-model="form.buyerName" placeholder="请输入收货人姓名" />
-        </el-form-item>
-        <el-form-item label="联系电话">
-          <el-input v-model="form.buyerPhone" placeholder="请输入 11 位手机号" maxlength="11" />
-        </el-form-item>
-        <el-form-item label="交易地点">
-          <el-input v-model="form.address" placeholder="请输入交易 / 收货地点" />
+        <el-form-item label="收货地址">
+          <div class="addr-field">
+            <el-select
+              v-if="addresses.length"
+              v-model="form.addressId"
+              style="width: 100%"
+              placeholder="请选择收货地址"
+            >
+              <el-option
+                v-for="a in addresses"
+                :key="a.id"
+                :label="`${a.receiverName} ${a.receiverPhone} ${a.fullAddress}${a.isDefault ? '（默认）' : ''}`"
+                :value="a.id"
+              />
+            </el-select>
+            <div v-else class="no-addr">
+              还没有收货地址，请先
+              <el-link type="danger" @click="goAddresses">新增地址</el-link>
+            </div>
+            <el-button link type="primary" class="manage" @click="goAddresses">管理地址</el-button>
+          </div>
         </el-form-item>
         <el-form-item label="备注">
           <el-input v-model="form.remark" type="textarea" :rows="2" placeholder="备注（可选）" />
@@ -128,7 +141,8 @@ const selected = ref([])
 const tableRef = ref()
 const checkoutVisible = ref(false)
 const submitting = ref(false)
-const form = ref({ buyerName: '', buyerPhone: '', address: '', remark: '' })
+const addresses = ref([])
+const form = ref({ addressId: null, remark: '' })
 
 const total = computed(() =>
   selected.value.reduce((sum, row) => sum + Number(row.subtotal || 0), 0).toFixed(2)
@@ -169,30 +183,28 @@ async function toFavorites() {
 }
 
 async function openCheckout() {
-  const me = await http.get('/customer/me')
-  form.value = {
-    buyerName: me.username || '',
-    buyerPhone: me.phone || '',
-    address: me.defaultAddress || '',
-    remark: ''
-  }
+  addresses.value = await http.get('/customer/addresses')
+  const preferred = addresses.value.find((a) => a.isDefault) || addresses.value[0]
+  form.value = { addressId: preferred ? preferred.id : null, remark: '' }
   checkoutVisible.value = true
 }
 
+function goAddresses() {
+  checkoutVisible.value = false
+  router.push('/customer/addresses')
+}
+
 async function submitOrder() {
-  if (!form.value.buyerName.trim()) return ElMessage.warning('请填写收货人')
-  if (!/^1\d{10}$/.test(form.value.buyerPhone)) return ElMessage.warning('请填写正确的 11 位手机号')
+  if (!form.value.addressId) return ElMessage.warning('请先选择收货地址')
   submitting.value = true
   try {
     const order = await http.post('/customer/cart/checkout', {
       itemIds: selected.value.map((r) => r.id),
-      buyerName: form.value.buyerName.trim(),
-      buyerPhone: form.value.buyerPhone,
-      address: form.value.address,
+      addressId: form.value.addressId,
       remark: form.value.remark
     })
     checkoutVisible.value = false
-    ElMessage.success(`下单成功，订单号 ${order.orderNo}`)
+    ElMessage.success(`下单成功，订单号 ${order.orderNo}，请在订单中完成支付`)
     router.push('/customer/orders')
   } catch (e) {
     /* 拦截器已提示错误 */
@@ -224,4 +236,7 @@ onMounted(load)
 .checkout-items { width: 100%; font-size: 13px; color: #5c534c; }
 .checkout-item { display: flex; justify-content: space-between; padding: 4px 0; }
 .checkout-total { margin-top: 6px; text-align: right; font-weight: 700; color: #b85042; }
+.addr-field { width: 100%; }
+.no-addr { font-size: 13px; color: #8a8178; }
+.manage { margin-top: 4px; }
 </style>

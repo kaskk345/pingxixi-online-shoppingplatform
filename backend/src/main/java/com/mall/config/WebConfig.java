@@ -32,7 +32,9 @@ public class WebConfig implements WebMvcConfigurer {
                 .excludePathPatterns("/api/seller/login");
         registry.addInterceptor(customerInterceptor)
                 .addPathPatterns("/api/customer/**")
-                .excludePathPatterns("/api/customer/login", "/api/customer/register");
+                .excludePathPatterns("/api/customer/login", "/api/customer/register",
+                        // 支付宝异步通知由支付宝服务器发起，不带客户 token
+                        "/api/customer/payments/alipay/notify");
     }
 
     @Override

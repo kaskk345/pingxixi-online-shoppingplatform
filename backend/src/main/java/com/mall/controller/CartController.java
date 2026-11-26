@@ -3,12 +3,13 @@ package com.mall.controller;
 import com.mall.common.Result;
 import com.mall.dto.CartItemView;
 import com.mall.dto.OrderView;
+import com.mall.entity.Address;
 import com.mall.entity.Customer;
+import com.mall.service.AddressService;
 import com.mall.service.CartService;
 import com.mall.service.CustomerService;
 import com.mall.service.OrderService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class CartController {
     private final CartService cartService;
     private final OrderService orderService;
     private final CustomerService customerService;
+    private final AddressService addressService;
 
     @GetMapping
     public Result<List<CartItemView>> list(@RequestAttribute("customerId") Long customerId) {
@@ -75,13 +77,25 @@ public class CartController {
     public Result<OrderView> checkout(@RequestAttribute("customerId") Long customerId,
                                       @Valid @RequestBody CheckoutReq req) {
         Customer customer = customerService.get(customerId);
-        String name = req.buyerName() == null || req.buyerName().isBlank()
-                ? customer.getUsername() : req.buyerName().trim();
-        String phone = req.buyerPhone() == null || req.buyerPhone().isBlank()
-                ? customer.getPhone() : req.buyerPhone().trim();
-        String address = req.address() == null || req.address().isBlank()
-                ? customer.getDefaultAddress() : req.address().trim();
-        return Result.ok(orderService.checkoutFromCart(customerId, req.itemIds(), name, phone, address, req.remark()));
+        String name;
+        String phone;
+        String address;
+        if (req.addressId() != null) {
+            // 挑战 C.2：优先使用地址簿中选中的地址，并以其收件人信息为准
+            Address addr = addressService.getOwned(customerId, req.addressId());
+            name = addr.getReceiverName();
+            phone = addr.getReceiverPhone();
+            address = addr.fullAddress();
+        } else {
+            name = req.buyerName() == null || req.buyerName().isBlank()
+                    ? customer.getUsername() : req.buyerName().trim();
+            phone = req.buyerPhone() == null || req.buyerPhone().isBlank()
+                    ? customer.getPhone() : req.buyerPhone().trim();
+            address = req.address() == null || req.address().isBlank()
+                    ? customer.getDefaultAddress() : req.address().trim();
+        }
+        return Result.ok(orderService.checkoutFromCart(customerId, req.itemIds(), name, phone, address,
+                req.remark(), req.addressId()));
     }
 
     public record AddReq(
@@ -102,10 +116,12 @@ public class CartController {
 
     public record CheckoutReq(
             @NotEmpty(message = "请选择要下单的商品") List<Long> itemIds,
-            @NotBlank(message = "收货人不能为空") String buyerName,
-            @NotBlank(message = "联系电话不能为空") String buyerPhone,
+            String buyerName,
+            String buyerPhone,
             String address,
-            String remark
+            String remark,
+            /** 收货地址簿 ID：传入时以地址簿为准，忽略上面的手输字段 */
+            Long addressId
     ) {
     }
 }

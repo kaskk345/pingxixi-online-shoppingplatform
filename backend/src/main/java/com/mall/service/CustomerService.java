@@ -20,6 +20,7 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final CustomerTokenStore tokenStore;
+    private final AddressService addressService;
     private final BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
 
     @Transactional
@@ -36,12 +37,16 @@ public class CustomerService {
         if (customerRepository.existsByUsername(username.trim())) {
             throw new BizException("用户名已存在");
         }
-        return customerRepository.save(Customer.builder()
+        Customer customer = customerRepository.save(Customer.builder()
                 .username(username.trim())
                 .password(encoder.encode(password))
                 .phone(phone.trim())
                 .defaultAddress(defaultAddress)
                 .build());
+        // 挑战 C.2：注册时填写的默认交易地点自动落为第一条收货地址
+        addressService.initFromRegister(customer.getId(), customer.getUsername(),
+                customer.getPhone(), defaultAddress);
+        return customer;
     }
 
     public String login(String username, String password) {

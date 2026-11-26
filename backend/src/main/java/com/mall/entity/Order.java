@@ -1,5 +1,7 @@
 package com.mall.entity;
 
+import com.mall.entity.enums.ExpressCompany;
+import com.mall.entity.enums.LogisticsStatus;
 import com.mall.entity.enums.OrderStatus;
 import jakarta.persistence.*;
 import lombok.*;
@@ -40,9 +42,12 @@ public class Order {
     @Column(nullable = false, length = 20)
     private String buyerPhone;
 
-    /** 收货 / 交易地点 */
+    /** 收货 / 交易地点（下单时的地址快照，地址簿后续修改不影响历史订单） */
     @Column(length = 255)
     private String address;
+
+    /** 下单时选中的地址簿 ID，手输地址时为 null */
+    private Long addressId;
 
     /** 买家留言 */
     @Column(length = 255)
@@ -72,10 +77,30 @@ public class Order {
 
     private LocalDateTime updatedAt;
 
+    /** 支付渠道：ALIPAY / WECHAT / BANK_CARD / CREDIT_CARD（未支付为 null） */
+    @Column(length = 20)
+    private String payChannel;
+
+    /** 快递公司：发货时由卖家选择（挑战 C.2） */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ExpressCompany expressCompany;
+
+    /** 运单号：卖家填写，留空时由系统生成模拟单号 */
+    @Column(length = 40)
+    private String trackingNo;
+
+    /** 物流状态：系统维护，买家只读 */
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private LogisticsStatus logisticsStatus;
+
     /** 以下为各状态流转时间，便于追溯 */
+    private LocalDateTime paidAt;
     private LocalDateTime confirmedAt;
     private LocalDateTime preparedAt;
     private LocalDateTime shippedAt;
+    private LocalDateTime signedAt;
     private LocalDateTime completedAt;
     private LocalDateTime canceledAt;
 

@@ -27,3 +27,17 @@ spring:
 # 图片上传目录（相对工作目录）
 mall:
   upload-dir: uploads
+  # 线上支付配置（挑战 C.1）
+  # 默认 enabled=false：四个渠道全部走站内「模拟收银台」，无需任何第三方资质即可演示。
+  # 若要对接支付宝沙箱：把 enabled 改为 true，并填入沙箱 APPID / 应用私钥 / 支付宝公钥，
+  # notify-url 必须是公网可访问地址（本地可用 natapp / cpolar 等内网穿透）。
+  pay:
+    alipay:
+      enabled: false
+      app-id:
+      gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+      private-key:
+      alipay-public-key:
+      notify-url: http://localhost:8080/api/customer/payments/alipay/notify
+      return-url: http://localhost:5173/customer/orders
+      subject-prefix: 拼嘻嘻订单
