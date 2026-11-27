@@ -27,6 +27,10 @@
 2. [第 2 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
 3. [第 3 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC3%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)（v0.3.0）
 
+## 评审结果归纳
+
+- [第 4 次评审结果归纳](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC4%E6%AC%A1%E8%AF%84%E5%AE%A1%E7%BB%93%E6%9E%9C%E5%BD%92%E7%BA%B3)（挑战 B · 含 Docker 镜像与容器验证）
+
 ## 需求与设计文档
 
 - [需求规格说明书](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E9%9C%80%E6%B1%82%E8%A7%84%E6%A0%BC%E8%AF%B4%E6%98%8E%E4%B9%A6)
