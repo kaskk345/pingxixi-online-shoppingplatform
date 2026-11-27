@@ -24,13 +24,10 @@
 
 ## 成果验收
 
-1. [第 1 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC1%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
-2. [第 2 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)
+1. [第 1 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC1%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)（v0.1.0）
+2. [第 2 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)（v0.2.0）
 3. [第 3 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC3%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)（v0.3.0）
-
-## 评审结果归纳
-
-- [第 4 次评审结果归纳](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC4%E6%AC%A1%E8%AF%84%E5%AE%A1%E7%BB%93%E6%9E%9C%E5%BD%92%E7%BA%B3)（挑战 B · 含 Docker 镜像与容器验证）
+4. [第 4 次成果验收](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC4%E6%AC%A1%E6%88%90%E6%9E%9C%E9%AA%8C%E6%94%B6)（v0.4.0 · 挑战 B）
 
 ## 需求与设计文档
 
@@ -40,7 +37,7 @@
 
 ## 相关文档
 
-- [产品订单 Product Backlog](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/main/产品订单_ProductBacklog.md)
-- [冲刺订单 Sprint Backlog](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/main/冲刺订单_SprintBacklog.md)
-- [端到端验证记录](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/main/docs/端到端验证记录.md)
-- [README（快速开始）](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/main/README.md)
+- [产品订单 Product Backlog](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/master/产品订单_ProductBacklog.md)
+- [冲刺订单 Sprint Backlog](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/master/冲刺订单_SprintBacklog.md)
+- [端到端验证记录](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/master/docs/端到端验证记录.md)
+- [README（快速开始）](https://github.com/kaskk345/pingxixi-online-shoppingplatform/blob/master/README.md)
