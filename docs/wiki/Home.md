@@ -20,6 +20,7 @@
 2. [第 2 次阶段性评审报告](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC2%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A)
 3. [第 3 次阶段性评审报告](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC3%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A)（卖家侧能力补齐 · 文档与实现一致）
 4. [第 4 次阶段性评审报告](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC4%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A)（挑战 B 首批：订单闭环与商品预选）
+   - 配套：[需求 B 升级 · 更新内容整理](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E9%9C%80%E6%B1%82B_%E6%9B%B4%E6%96%B0%E5%86%85%E5%AE%B9%E6%95%B4%E7%90%86)（B.1 / B.2 逐条实现与实测）· [讲述版 PPT 逐页预览](https://github.com/kaskk345/pingxixi-online-shoppingplatform/wiki/%E7%AC%AC4%E6%AC%A1%E9%98%B6%E6%AE%B5%E6%80%A7%E8%AF%84%E5%AE%A1%E6%8A%A5%E5%91%8A#%E9%99%84%E6%B1%87%E6%8A%A5-ppt-%E4%B8%8E%E9%80%90%E9%A1%B5%E9%A2%84%E8%A7%88)
 
 ## 成果验收
 
